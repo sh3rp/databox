@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package msg;
+
+service BoxService {
+    rpc NewBox(Box) returns (Box) {}
+    rpc SaveBox(Box) returns (Box) {}
+    rpc GetBoxById(Box) returns (Box) {}
+    rpc GetBoxes(None) returns (Boxes) {}
+    
+    rpc NewLink(Link) returns (Link) {}
+    rpc SaveLink(Link) returns (Link) {}
+    rpc GetLinkById(Link) returns (Link) {}
+    rpc GetLinks(None) returns (Links) {}
+    rpc GetLinksByBoxId(Box) returns (Links) {}
+}
+
+message None {}
+
+message Box {
+    int64 id = 1;
+    string name = 2;
+    string description = 3;
+}
+
+message Boxes {
+    repeated Box boxes = 1;
+}
+
+message Link {
+    int64 id = 1;
+    string name = 2;
+    string url = 3;
+    string description = 4;
+    repeated string tags = 5;
+    int64 boxId = 6;
+    int64 createdOn = 7;
+}
+
+message Links {
+    repeated Link links = 1;
+}
