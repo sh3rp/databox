@@ -8,29 +8,30 @@ import (
 )
 
 type InMemoryDB struct {
-	boxes     map[int64]*msg.Box
-	boxesLock *sync.Mutex
-	boxId     int64
-	links     map[int64]*msg.Link
-	linksLock *sync.Mutex
-	linkId    int64
+	boxes      map[string]*msg.Box
+	boxesLock  *sync.Mutex
+	links      map[string]*msg.Link
+	linksLock  *sync.Mutex
+	defaultBox *msg.Box
 }
 
 func NewInMemoryDB() *InMemoryDB {
 	db := InMemoryDB{
-		boxes:     make(map[int64]*msg.Box),
-		links:     make(map[int64]*msg.Link),
+		boxes:     make(map[string]*msg.Box),
+		links:     make(map[string]*msg.Link),
 		boxesLock: new(sync.Mutex),
 		linksLock: new(sync.Mutex),
 	}
-	db.NewBox("default")
+	db.defaultBox, _ = db.NewBox("default", "Default box", true)
 	return &db
 }
 
-func (db *InMemoryDB) NewBox(name string) (*msg.Box, error) {
+func (db *InMemoryDB) NewBox(name string, description string, isDefault bool) (*msg.Box, error) {
 	box := &msg.Box{
-		Id:   db.newBoxId(),
-		Name: name,
+		Id:          GenerateID(),
+		Name:        name,
+		Description: description,
+		IsDefault:   isDefault,
 	}
 	db.boxesLock.Lock()
 	defer db.boxesLock.Unlock()
@@ -41,14 +42,14 @@ func (db *InMemoryDB) NewBox(name string) (*msg.Box, error) {
 func (db *InMemoryDB) SaveBox(box *msg.Box) error {
 	db.boxesLock.Lock()
 	defer db.boxesLock.Unlock()
-	if box.Id == 0 {
-		box.Id = db.newBoxId()
+	if box.Id == "" {
+		box.Id = GenerateID()
 	}
 	db.boxes[box.Id] = box
 	return nil
 }
 
-func (db *InMemoryDB) GetBoxById(id int64) (*msg.Box, error) {
+func (db *InMemoryDB) GetBoxById(id string) (*msg.Box, error) {
 	db.boxesLock.Lock()
 	defer db.boxesLock.Unlock()
 	if box, ok := db.boxes[id]; ok {
@@ -67,16 +68,20 @@ func (db *InMemoryDB) GetBoxes() ([]*msg.Box, error) {
 	return boxes, nil
 }
 
-func (db *InMemoryDB) DeleteBox(id int64) error {
+func (db *InMemoryDB) DeleteBox(id string) error {
 	db.boxesLock.Lock()
 	defer db.boxesLock.Unlock()
 	delete(db.boxes, id)
 	return nil
 }
 
-func (db *InMemoryDB) NewLink(name string, url string, boxId int64) (*msg.Link, error) {
+func (db *InMemoryDB) GetDefaultBox() (*msg.Box, error) {
+	return db.defaultBox, nil
+}
+
+func (db *InMemoryDB) NewLink(name string, url string, boxId string) (*msg.Link, error) {
 	link := &msg.Link{
-		Id:    db.newLinkId(),
+		Id:    GenerateID(),
 		Name:  name,
 		Url:   url,
 		BoxId: boxId,
@@ -97,7 +102,7 @@ func (db *InMemoryDB) SaveLink(link *msg.Link) error {
 	return nil
 }
 
-func (db *InMemoryDB) GetLinkById(id int64) (*msg.Link, error) {
+func (db *InMemoryDB) GetLinkById(id string) (*msg.Link, error) {
 	db.linksLock.Lock()
 	defer db.linksLock.Unlock()
 	if link, ok := db.links[id]; ok {
@@ -116,7 +121,7 @@ func (db *InMemoryDB) GetLinks() ([]*msg.Link, error) {
 	return links, nil
 }
 
-func (db *InMemoryDB) GetLinksByBoxId(id int64) ([]*msg.Link, error) {
+func (db *InMemoryDB) GetLinksByBoxId(id string) ([]*msg.Link, error) {
 	db.linksLock.Lock()
 	defer db.linksLock.Unlock()
 	var links []*msg.Link
@@ -128,19 +133,9 @@ func (db *InMemoryDB) GetLinksByBoxId(id int64) ([]*msg.Link, error) {
 	return links, nil
 }
 
-func (db *InMemoryDB) DeleteLink(id int64) error {
+func (db *InMemoryDB) DeleteLink(id string) error {
 	db.linksLock.Lock()
 	defer db.linksLock.Unlock()
 	delete(db.links, id)
 	return nil
-}
-
-func (db *InMemoryDB) newBoxId() int64 {
-	db.boxId = db.boxId + 1
-	return db.boxId
-}
-
-func (db *InMemoryDB) newLinkId() int64 {
-	db.linkId = db.linkId + 1
-	return db.linkId
 }
