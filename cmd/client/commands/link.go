@@ -1,11 +1,7 @@
 package commands
 
 import (
-	"context"
-
-	"github.com/sh3rp/databox/msg"
 	"github.com/spf13/cobra"
-	"google.golang.org/grpc"
 )
 
 var linkName string
@@ -38,16 +34,5 @@ var LinkLoadCmd = &cobra.Command{
 	Use:   "get",
 	Short: "Load a link(s)",
 	Run: func(cmd *cobra.Command, args []string) {
-		conn, err := grpc.Dial("127.0.0.1:5656", grpc.WithInsecure())
-
-		if err != nil {
-			panic(err)
-		}
-
-		defer conn.Close()
-
-		client := msg.NewBoxServiceClient(conn)
-		client.GetLinkById(context.Background())
-
 	},
 }

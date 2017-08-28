@@ -1,0 +1,20 @@
+package: github.com/sh3rp/databox
+import:
+- package: github.com/gin-gonic/gin
+- package: github.com/golang/protobuf
+  subpackages:
+  - proto
+- package: github.com/oklog/ulid
+- package: github.com/rs/zerolog
+  subpackages:
+  - log
+- package: github.com/spf13/cobra
+- package: golang.org/x/net
+  subpackages:
+  - context
+- package: google.golang.org/grpc
+testImport:
+- package: github.com/stretchr/testify
+  subpackages:
+  - assert
+  - suite
