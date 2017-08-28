@@ -9,7 +9,7 @@ linux: glide protobuf test serverlinux clientlinux
 linuxfast: protobuf serverlinux clientlinux
 
 test:
-	go test db/* -cover
+	go test db/* -cover -v
 
 serverdarwin:
 	GOOS=darwin GOARCH=amd64 go build -o bawx-server.darwin cmd/server/server.go
