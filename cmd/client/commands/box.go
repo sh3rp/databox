@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/sh3rp/databox/config"
 	"github.com/sh3rp/databox/msg"
 	"github.com/sh3rp/databox/util"
 
@@ -13,7 +14,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var boxId string
 var boxName string
+var boxDescription string
+
+var setBoxEnv bool
 
 var BoxCmd = &cobra.Command{
 	Use:   "box",
@@ -39,9 +44,19 @@ var BoxNewCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		box, err := client.NewBox(context.Background(), &msg.Box{Name: boxName})
+		box, err := client.NewBox(context.Background(), &msg.Box{Name: boxName, Description: boxDescription})
 
-		util.PrettyPrint(box)
+		if err != nil {
+			fmt.Printf("Error creating new box: %v\n", err)
+		} else {
+			if setBoxEnv {
+				cfg := &config.ClientConfig{}
+				cfg.Read()
+				cfg.DefaultBoxId = box.Id
+				cfg.Write()
+			}
+			util.PrettyPrint(box)
+		}
 	},
 }
 
@@ -61,7 +76,42 @@ var BoxListCmd = &cobra.Command{
 
 		boxes, err := client.GetBoxes(context.Background(), &msg.None{})
 
-		util.PrettyPrint(boxes)
+		if err != nil {
+			fmt.Printf("Error getting boxes: %v\n", err)
+		} else {
+			util.PrettyPrint(boxes)
+		}
+	},
+}
+
+var BoxSetCmd = &cobra.Command{
+	Use:   "set",
+	Short: "Set the current box",
+	Run: func(cmd *cobra.Command, args []string) {
+		conn, err := grpc.Dial("127.0.0.1:5656", grpc.WithInsecure())
+
+		if err != nil {
+			panic(err)
+		}
+
+		defer conn.Close()
+
+		client := msg.NewBoxServiceClient(conn)
+
+		box, err := client.GetBoxById(context.Background(), &msg.Box{Id: boxId})
+
+		if err != nil {
+			fmt.Printf("Error getting box: %v\n", err)
+			os.Exit(1)
+		}
+
+		cfg := &config.ClientConfig{}
+		cfg.Read()
+		cfg.DefaultBoxId = box.Id
+		fmt.Printf("%v\n", cfg)
+		cfg.Write()
+
+		fmt.Printf("Set default box to %s\n", box.Name)
 	},
 }
 

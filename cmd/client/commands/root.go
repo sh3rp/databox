@@ -9,13 +9,27 @@ var RootCmd = &cobra.Command{
 
 func init() {
 	BoxNewCmd.Flags().StringVarP(&boxName, "name", "n", "", "Box name")
-	BoxCmd.AddCommand(BoxNewCmd, BoxListCmd, BoxNewCmd)
+	BoxNewCmd.Flags().StringVarP(&boxDescription, "description", "d", "", "Box description")
+	BoxNewCmd.Flags().BoolVarP(&setBoxEnv, "setEnv", "e", false, "Set newly created box to current working box")
 
-	LinkCmd.Flags().StringVarP(&linkName, "name", "n", "", "Link name")
-	LinkCmd.Flags().StringVarP(&linkUrl, "url", "u", "", "Link URL")
-	LinkCmd.Flags().StringVarP(&linkBoxId, "box", "b", "", "Box to store this link in")
-	LinkCmd.Flags().StringVarP(&linkTags, "tag", "t", "", "Tags to apply to link")
+	BoxSetCmd.Flags().StringVarP(&boxId, "id", "i", "", "Box id")
 
-	LinkCmd.AddCommand(LinkAddCmd, LinkGetLinksCmd, LinkLoadCmd)
+	BoxCmd.AddCommand(BoxNewCmd, BoxListCmd, BoxGetCmd, BoxSetCmd)
+
+	LinkLoadCmd.Flags().StringVarP(&linkId, "id", "i", "", "Link id")
+	LinkLoadCmd.Flags().StringVarP(&linkBoxId, "box", "b", "", "Box contain links to load")
+
+	LinkAddCmd.Flags().StringVarP(&linkName, "name", "n", "", "Link name")
+	LinkAddCmd.Flags().StringVarP(&linkUrl, "url", "u", "", "Link URL")
+	LinkAddCmd.Flags().StringVarP(&linkBoxId, "box", "b", "", "Box to store this link in")
+	LinkAddCmd.Flags().StringVarP(&linkTags, "tag", "t", "", "Tags to apply to link; comma delimited")
+
+	LinkGetLinksCmd.Flags().StringVarP(&linkBoxId, "box", "b", "", "Box id of the box containing links")
+	LinkGetLinksCmd.Flags().StringVarP(&linkTags, "tag", "t", "", "Tag to search for")
+
+	LinkTagCmd.Flags().StringVarP(&linkId, "id", "i", "", "Link id")
+	LinkTagCmd.Flags().StringVarP(&linkTags, "tag", "t", "", "Tags to apply to link; comma delimited")
+
+	LinkCmd.AddCommand(LinkAddCmd, LinkGetLinksCmd, LinkLoadCmd, LinkTagCmd)
 	RootCmd.AddCommand(BoxCmd, LinkCmd)
 }
