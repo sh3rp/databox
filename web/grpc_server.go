@@ -32,7 +32,7 @@ func (s *GRPCServer) Start(port int) {
 }
 
 func (s *GRPCServer) NewBox(ctx context.Context, box *msg.Box) (*msg.Box, error) {
-	newBox, err := s.DB.NewBox(box.Name)
+	newBox, err := s.DB.NewBox(box.Name, box.Description, false)
 
 	if err != nil {
 		return nil, err

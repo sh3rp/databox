@@ -15,18 +15,24 @@ type InMemoryDB struct {
 	defaultBox *msg.Box
 }
 
-func NewInMemoryDB() *InMemoryDB {
+func NewInMemoryDB() BoxDB {
 	db := InMemoryDB{
 		boxes:     make(map[string]*msg.Box),
 		links:     make(map[string]*msg.Link),
 		boxesLock: new(sync.Mutex),
 		linksLock: new(sync.Mutex),
 	}
-	db.defaultBox, _ = db.NewBox("default", "Default box", true)
+	//db.defaultBox, _ = db.NewBox("default", "Default box", true)
 	return &db
 }
 
 func (db *InMemoryDB) NewBox(name string, description string, isDefault bool) (*msg.Box, error) {
+	if name == "" {
+		return nil, errors.New("Name must not be empty")
+	}
+	if description == "" {
+		return nil, errors.New("Description must not be empty")
+	}
 	box := &msg.Box{
 		Id:          GenerateID(),
 		Name:        name,
@@ -36,6 +42,10 @@ func (db *InMemoryDB) NewBox(name string, description string, isDefault bool) (*
 	db.boxesLock.Lock()
 	defer db.boxesLock.Unlock()
 	db.boxes[box.Id] = box
+	if box.IsDefault && db.defaultBox != nil {
+		db.boxes[db.defaultBox.Id].IsDefault = false
+	}
+	db.defaultBox = db.boxes[box.Id]
 	return box, nil
 }
 
@@ -43,7 +53,7 @@ func (db *InMemoryDB) SaveBox(box *msg.Box) error {
 	db.boxesLock.Lock()
 	defer db.boxesLock.Unlock()
 	if box.Id == "" {
-		box.Id = GenerateID()
+		return errors.New("No id set, cannot save box")
 	}
 	db.boxes[box.Id] = box
 	return nil
@@ -80,6 +90,16 @@ func (db *InMemoryDB) GetDefaultBox() (*msg.Box, error) {
 }
 
 func (db *InMemoryDB) NewLink(name string, url string, boxId string) (*msg.Link, error) {
+	if boxId == "" {
+		return nil, errors.New("Cannot specify empty box ID")
+	}
+
+	_, err := db.GetBoxById(boxId)
+
+	if err != nil {
+		return nil, err
+	}
+
 	link := &msg.Link{
 		Id:    GenerateID(),
 		Name:  name,

@@ -2,7 +2,6 @@ package web
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sh3rp/databox/db"
@@ -42,8 +41,8 @@ func (s *Server) Start() {
 		var box msg.Box
 		err := c.BindJSON(&box)
 		if err == nil {
-			if box.Id == 0 {
-				newBox, err := db.NewBox(box.Name)
+			if box.Id == "" {
+				newBox, err := db.NewBox(box.Name, box.Description, false)
 				if err != nil {
 					c.JSON(200, Error(E_DB_CREATE_BOX, err))
 					return
@@ -58,16 +57,9 @@ func (s *Server) Start() {
 		}
 	})
 	r.GET("/box/:id", func(c *gin.Context) {
-		idStr := c.Param("id")
+		id := c.Param("id")
 
-		id, err := strconv.Atoi(idStr)
-
-		if err != nil {
-			c.JSON(200, Error(E_IO_INVALID_BOX_ID, err))
-			return
-		}
-
-		box, err := s.DB.GetBoxById(int64(id))
+		box, err := s.DB.GetBoxById(id)
 
 		if err == nil {
 			c.JSON(200, Success(box))
@@ -77,16 +69,9 @@ func (s *Server) Start() {
 
 	})
 	r.GET("/box/:id/link", func(c *gin.Context) {
-		idStr := c.Param("id")
+		id := c.Param("id")
 
-		id, err := strconv.Atoi(idStr)
-
-		if err != nil {
-			c.JSON(200, Error(E_IO_INVALID_BOX_ID, err))
-			return
-		}
-
-		links, err := db.GetLinksByBoxId(int64(id))
+		links, err := db.GetLinksByBoxId(id)
 
 		if err == nil {
 			c.JSON(200, Success(links))
@@ -96,35 +81,28 @@ func (s *Server) Start() {
 
 	})
 	r.POST("/box/:id/link", func(c *gin.Context) {
-		idStr := c.Param("id")
-
-		boxId, err := strconv.Atoi(idStr)
-
-		if err != nil {
-			c.JSON(200, Error(E_IO_INVALID_BOX_ID, err))
-			return
-		}
+		boxId := c.Param("boxId")
 
 		var linkUpdate msg.Link
 
-		err = c.BindJSON(&linkUpdate)
+		err := c.BindJSON(&linkUpdate)
 
 		if err != nil {
 			c.JSON(200, Error(E_IO_DECODE_LINK, err))
 			return
 		}
 
-		_, err = s.DB.GetBoxById(int64(boxId))
+		_, err = s.DB.GetBoxById(boxId)
 
 		if err != nil {
 			c.JSON(200, Error(E_DB_BOX_NOT_FOUND, err))
 			return
 		}
 
-		link, err := s.DB.GetLinkById(int64(linkUpdate.Id))
+		link, err := s.DB.GetLinkById(linkUpdate.Id)
 
 		if err != nil {
-			link, err = s.DB.NewLink(linkUpdate.Name, linkUpdate.Url, int64(boxId))
+			link, err = s.DB.NewLink(linkUpdate.Name, linkUpdate.Url, boxId)
 
 			if err != nil {
 				c.JSON(200, Error(E_DB_CREATE_LINK, err))
@@ -133,7 +111,7 @@ func (s *Server) Start() {
 				c.JSON(200, Success(link))
 			}
 		} else {
-			linkUpdate.BoxId = int64(boxId)
+			linkUpdate.BoxId = boxId
 			err = s.DB.SaveLink(&linkUpdate)
 			if err != nil {
 				c.JSON(200, Error(E_DB_UPDATE_LINK, err))
@@ -145,32 +123,18 @@ func (s *Server) Start() {
 
 	})
 	r.GET("/box/:id/link/:linkId", func(c *gin.Context) {
-		idStr := c.Param("id")
+		boxId := c.Param("id")
 
-		boxId, err := strconv.Atoi(idStr)
-
-		if err != nil {
-			c.JSON(200, Error(E_IO_INVALID_BOX_ID, err))
-			return
-		}
-
-		_, err = s.DB.GetBoxById(int64(boxId))
+		_, err := s.DB.GetBoxById(boxId)
 
 		if err != nil {
 			c.JSON(200, Error(E_DB_BOX_NOT_FOUND, err))
 			return
 		}
 
-		idStr = c.Param("linkId")
+		linkId := c.Param("linkId")
 
-		linkId, err := strconv.Atoi(idStr)
-
-		if err != nil {
-			c.JSON(200, Error(E_IO_INVALID_LINK_ID, err))
-			return
-		}
-
-		link, err := s.DB.GetLinkById(int64(linkId))
+		link, err := s.DB.GetLinkById(linkId)
 
 		if err != nil {
 			c.JSON(200, Error(E_DB_LINK_NOT_FOUND, err))
