@@ -6,4 +6,5 @@ type SearchEngine interface {
 	IndexLink(*msg.Link) error
 	UnIndexLink(*msg.Link) error
 	FindLinks(string) []*msg.Link
+	ReIndex()
 }

@@ -34,6 +34,36 @@ func (suite *SearchEngineTestSuite) TestIndexLink() {
 	err := s.IndexLink(link)
 
 	assert.Nil(suite.T(), err)
+
+	assert.Equal(suite.T(), len(s.FindLinks("fake")), 1)
+}
+
+func (suite *SearchEngineTestSuite) TestIndexLinkUpdate() {
+	s := suite.SearchEngine
+
+	link := &msg.Link{
+		Id:   GenerateID(),
+		Url:  "http://www.cnn.com",
+		Name: "CNN",
+		Tags: []string{
+			"fake",
+			"news",
+		},
+	}
+
+	err := s.IndexLink(link)
+
+	assert.Nil(suite.T(), err)
+
+	assert.Equal(suite.T(), len(s.FindLinks("fake")), 1)
+
+	link.Tags = []string{"real", "news"}
+
+	err = s.IndexLink(link)
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), 1, len(s.FindLinks("real")))
+	assert.Equal(suite.T(), 0, len(s.FindLinks("fake")))
 }
 
 func (suite *SearchEngineTestSuite) TestIndexFindLink() {
