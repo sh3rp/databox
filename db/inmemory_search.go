@@ -47,6 +47,7 @@ func (se *InMemorySearchEngine) IndexLink(link *msg.Link) error {
 
 	return nil
 }
+
 func (se *InMemorySearchEngine) UnIndexLink(link *msg.Link) error {
 	for _, t := range se.LinkTagList[link.Id] {
 		if _, ok := se.TermIndex[t]; ok {
@@ -64,6 +65,7 @@ func (se *InMemorySearchEngine) UnIndexLink(link *msg.Link) error {
 	}
 	return nil
 }
+
 func (se *InMemorySearchEngine) FindLinks(term string) []*msg.Link {
 	return se.TermIndex[term]
 }
