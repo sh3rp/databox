@@ -27,16 +27,8 @@ func (db *BoltDB) NewBox(name string, description string) (*msg.Box, error) {
 		Name:        name,
 		Description: description,
 	}
-	var data bytes.Buffer
-	err := gob.NewEncoder(&data).Encode(box)
-
-	if err != nil {
-		return nil, err
-	}
-
-	db.insertKV([]byte(BOX_BUCKET), []byte(box.Id), data.Bytes())
-
-	return box, nil
+	err := db.insertObject(BOX_BUCKET, box.Id, box)
+	return box, err
 }
 
 func (db *BoltDB) SaveBox(box *msg.Box) error {
@@ -80,6 +72,19 @@ func (db *BoltDB) DeleteLink(id string) error {
 }
 
 // bolt specific elements
+
+func (db *BoltDB) insertObject(bucket string, id string, obj interface{}) error {
+	var data bytes.Buffer
+	err := gob.NewEncoder(&data).Encode(obj)
+
+	if err != nil {
+		return err
+	}
+
+	db.insertKV([]byte(bucket), []byte(id), data.Bytes())
+
+	return nil
+}
 
 type kv struct {
 	K []byte
