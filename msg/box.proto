@@ -21,7 +21,6 @@ message Box {
     string id = 1;
     string name = 2;
     string description = 3;
-    bool isDefault = 4;
 }
 
 message Boxes {

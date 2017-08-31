@@ -37,14 +37,10 @@ func (db *InMemoryDB) NewBox(name string, description string, isDefault bool) (*
 		Id:          GenerateID(),
 		Name:        name,
 		Description: description,
-		IsDefault:   isDefault,
 	}
 	db.boxesLock.Lock()
 	defer db.boxesLock.Unlock()
 	db.boxes[box.Id] = box
-	if box.IsDefault && db.defaultBox != nil {
-		db.boxes[db.defaultBox.Id].IsDefault = false
-	}
 	db.defaultBox = db.boxes[box.Id]
 	return box, nil
 }
