@@ -40,3 +40,16 @@ message Link {
 message Links {
     repeated Link links = 1;
 }
+
+message Note {
+    string id = 1;
+    string title = 2;
+    bytes text = 3;
+    repeated string tags = 4;
+    int64 createdOn = 5;
+    int64 lastModified = 6;
+}
+
+message Notes {
+    repeated Note notes = 1;
+}
