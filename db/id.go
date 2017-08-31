@@ -8,6 +8,8 @@ import (
 	"github.com/oklog/ulid"
 )
 
+type ID string
+
 func GenerateID() string {
 	t := time.Now()
 	entropy := rand.New(rand.NewSource(t.UnixNano()))

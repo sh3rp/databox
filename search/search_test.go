@@ -1,8 +1,9 @@
-package db
+package search
 
 import (
 	"fmt"
 
+	"github.com/sh3rp/databox/db"
 	"github.com/sh3rp/databox/msg"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -22,7 +23,7 @@ func (suite *SearchEngineTestSuite) TestIndexLink() {
 	s := suite.SearchEngine
 
 	link := &msg.Link{
-		Id:   GenerateID(),
+		Id:   db.GenerateID(),
 		Url:  "http://www.cnn.com",
 		Name: "CNN",
 		Tags: []string{
@@ -31,18 +32,18 @@ func (suite *SearchEngineTestSuite) TestIndexLink() {
 		},
 	}
 
-	err := s.IndexLink(link)
+	err := s.Index(Key(link.Id), link.Tags)
 
 	assert.Nil(suite.T(), err)
 
-	assert.Equal(suite.T(), len(s.FindLinks("fake")), 1)
+	assert.Equal(suite.T(), len(s.Find("fake", 10)), 1)
 }
 
 func (suite *SearchEngineTestSuite) TestIndexLinkUpdate() {
 	s := suite.SearchEngine
 
 	link := &msg.Link{
-		Id:   GenerateID(),
+		Id:   db.GenerateID(),
 		Url:  "http://www.cnn.com",
 		Name: "CNN",
 		Tags: []string{
@@ -51,19 +52,19 @@ func (suite *SearchEngineTestSuite) TestIndexLinkUpdate() {
 		},
 	}
 
-	err := s.IndexLink(link)
+	err := s.Index(Key(link.Id), link.Tags)
 
 	assert.Nil(suite.T(), err)
 
-	assert.Equal(suite.T(), len(s.FindLinks("fake")), 1)
+	assert.Equal(suite.T(), len(s.Find("fake", 10)), 1)
 
 	link.Tags = []string{"real", "news"}
 
-	err = s.IndexLink(link)
+	err = s.Index(Key(link.Id), link.Tags)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), 1, len(s.FindLinks("real")))
-	assert.Equal(suite.T(), 0, len(s.FindLinks("fake")))
+	assert.Equal(suite.T(), 1, len(s.Find("real", 10)))
+	assert.Equal(suite.T(), 0, len(s.Find("fake", 10)))
 }
 
 func (suite *SearchEngineTestSuite) TestIndexFindLink() {
@@ -71,17 +72,17 @@ func (suite *SearchEngineTestSuite) TestIndexFindLink() {
 
 	for i := 0; i < 1000; i++ {
 		link := &msg.Link{
-			Id:   GenerateID(),
+			Id:   db.GenerateID(),
 			Url:  fmt.Sprintf("http://www.cnn%d.com", i),
 			Name: fmt.Sprintf("Name%d", i),
 		}
-		if i%10 == 0 {
+		if i%100 == 0 {
 			link.Tags = []string{"search", "term", "pants"}
 		}
-		s.IndexLink(link)
+		s.Index(Key(link.Id), link.Tags)
 	}
 
-	links := s.FindLinks("search")
+	links := s.Find("search", 10)
 
-	assert.Equal(suite.T(), len(links), 100)
+	assert.Equal(suite.T(), len(links), 10)
 }
