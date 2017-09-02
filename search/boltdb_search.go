@@ -135,7 +135,7 @@ func (s *BoltSearchEngine) saveTermMatches(term string, links []Key) {
 func (s *BoltSearchEngine) saveTags(id Key, tags []string) error {
 	return s.DB.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(LINK_BUCKET))
-		err := bucket.Put([]byte(id), []byte(strings.Join(tags, ",")))
+		err := bucket.Put(id.GetId(), []byte(strings.Join(tags, ",")))
 		if err != nil {
 			return err
 		}
@@ -147,7 +147,7 @@ func (s *BoltSearchEngine) getTags(id Key) []string {
 	var tagsStr []byte
 	s.DB.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(LINK_BUCKET))
-		tagsStr = bucket.Get([]byte(id))
+		tagsStr = bucket.Get(id.GetId())
 		return nil
 	})
 
@@ -157,7 +157,7 @@ func (s *BoltSearchEngine) getTags(id Key) []string {
 func (s *BoltSearchEngine) saveTermSig(id Key, sig []byte) error {
 	return s.DB.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(TAG_SIG_BUCKET))
-		return bucket.Put([]byte(id), sig)
+		return bucket.Put(id.GetId(), sig)
 	})
 }
 
@@ -166,7 +166,7 @@ func (s *BoltSearchEngine) getTermSig(id Key) []byte {
 
 	s.DB.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(TAG_SIG_BUCKET))
-		sig = bucket.Get([]byte(id))
+		sig = bucket.Get(id.GetId())
 		return nil
 	})
 	return sig

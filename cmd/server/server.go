@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/rs/zerolog/log"
 	"github.com/sh3rp/databox/db"
@@ -15,8 +16,14 @@ var V_PATCH = 0
 
 func main() {
 	log.Info().Msgf("Loading databox %s", getVersion())
-	database := db.NewInMemoryDB()
-	search := search.NewInMemorySearchEngine()
+	err := os.Mkdir("db", 0600)
+
+	if err != nil {
+		panic(err)
+	}
+
+	database := db.NewBoltDB("db/box.db")
+	search := search.NewBoltSearchEngine("db/search.db")
 	server := web.NewServer(8080, 5656, database, search)
 	server.Start()
 }

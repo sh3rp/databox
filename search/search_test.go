@@ -40,7 +40,7 @@ func (suite *SearchEngineTestSuite) TestIndexLink() {
 		},
 	}
 
-	err := s.Index(Key(link.Id), link.Tags)
+	err := s.Index(GetKey(link), link.Tags)
 
 	assert.Nil(suite.T(), err)
 
@@ -60,7 +60,7 @@ func (suite *SearchEngineTestSuite) TestIndexLinkUpdate() {
 		},
 	}
 
-	err := s.Index(Key(link.Id), link.Tags)
+	err := s.Index(GetKey(link), link.Tags)
 
 	assert.Nil(suite.T(), err)
 
@@ -68,7 +68,7 @@ func (suite *SearchEngineTestSuite) TestIndexLinkUpdate() {
 
 	link.Tags = []string{"real", "news"}
 
-	err = s.Index(Key(link.Id), link.Tags)
+	err = s.Index(GetKey(link), link.Tags)
 
 	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), 1, len(s.Find("real", 10, 0)))
@@ -87,7 +87,7 @@ func (suite *SearchEngineTestSuite) TestIndexFindLink() {
 		if i%100 == 0 {
 			link.Tags = []string{"search", "term", "pants"}
 		}
-		s.Index(Key(link.Id), link.Tags)
+		s.Index(GetKey(link), link.Tags)
 	}
 
 	links := s.Find("search", 10, 0)

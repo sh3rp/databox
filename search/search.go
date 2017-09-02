@@ -3,6 +3,8 @@ package search
 import (
 	"crypto/sha256"
 	"strings"
+
+	"github.com/sh3rp/databox/msg"
 )
 
 type SearchEngine interface {
@@ -12,7 +14,21 @@ type SearchEngine interface {
 	FindPartial(string, int, int) []Key
 }
 
-type Key string
+type Key struct {
+	ID    string
+	BoxId string
+}
+
+func (k Key) GetId() []byte {
+	return []byte(k.BoxId + "-" + k.ID)
+}
+
+func GetKey(link *msg.Link) Key {
+	return Key{
+		ID:    link.Id,
+		BoxId: link.BoxId,
+	}
+}
 
 type Node struct {
 	Char   byte

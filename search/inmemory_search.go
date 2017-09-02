@@ -33,17 +33,6 @@ func (se *InMemorySearchEngine) Index(id Key, inTags []string) error {
 
 	for _, t := range tags {
 		se.TermIndex[t] = append(se.TermIndex[t], id)
-
-		bytes := []byte(t)
-		node := se.searchTree
-
-		for _, b := range bytes {
-			if node.Nodes[b] == nil {
-				node.Nodes[b] = &Node{Char: b, Nodes: make(map[byte]*Node)}
-			}
-			node = node.Nodes[b]
-		}
-		node.Leaves = append(node.Leaves, Key(t))
 	}
 
 	se.LinkTagSignature[id] = HashTags(tags)

@@ -82,7 +82,15 @@ func (s *GRPCServer) NewLink(ctx context.Context, link *msg.Link) (*msg.Link, er
 		return nil, err
 	}
 
-	return s.DB.NewLink(link.Name, link.Url, link.BoxId)
+	link, err = s.DB.NewLink(link.Name, link.Url, link.BoxId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.Search.Index(search.GetKey(link), link.Tags)
+
+	return link, err
 }
 func (s *GRPCServer) SaveLink(ctx context.Context, link *msg.Link) (*msg.Link, error) {
 	_, err := s.DB.GetBoxById(link.BoxId)
@@ -93,6 +101,12 @@ func (s *GRPCServer) SaveLink(ctx context.Context, link *msg.Link) (*msg.Link, e
 
 	err = s.DB.SaveLink(link)
 
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.Search.Index(search.GetKey(link), link.Tags)
+
 	return link, err
 }
 func (s *GRPCServer) GetLinkById(ctx context.Context, link *msg.Link) (*msg.Link, error) {
@@ -102,4 +116,14 @@ func (s *GRPCServer) GetLinksByBoxId(ctx context.Context, box *msg.Box) (*msg.Li
 	links, err := s.DB.GetLinksByBoxId(box.Id)
 
 	return &msg.Links{links}, err
+}
+func (s *GRPCServer) SearchLinks(ctx context.Context, search *msg.Search) (*msg.Links, error) {
+	var links []*msg.Link
+	linkIds := s.Search.Find(search.Term, int(search.Count), int(search.Page))
+
+	for _, id := range linkIds {
+		link, _ := s.DB.GetLinkById(id.BoxId, id.ID)
+		links = append(links, link)
+	}
+	return &msg.Links{links}, nil
 }

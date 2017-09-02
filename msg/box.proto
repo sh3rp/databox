@@ -13,10 +13,16 @@ service BoxService {
     rpc GetLinkById(Link) returns (Link) {}
     rpc GetLinksByBoxId(Box) returns (Links) {}
 
-    rpc SearchLinks(Link) returns (Links) {}
+    rpc SearchLinks(Search) returns (Links) {}
 }
 
 message None {}
+
+message Search {
+    string term = 1;
+    int32 count = 2;
+    int32 page = 3;
+}
 
 message Box {
     string id = 1;
