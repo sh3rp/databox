@@ -7,5 +7,11 @@ import (
 )
 
 func TestInMemoryDB(t *testing.T) {
-	suite.Run(t, &DBTestSuite{NewDB: NewInMemoryDB})
+	suite.Run(t, &DBTestSuite{
+		NewDB: newDB,
+	})
+}
+
+func newDB() (BoxDB, string) {
+	return NewInMemoryDB(), ""
 }

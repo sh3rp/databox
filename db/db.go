@@ -11,10 +11,9 @@ type BoxDB interface {
 
 	NewLink(name string, url string, boxId string) (*msg.Link, error)
 	SaveLink(*msg.Link) error
-	GetLinkById(string) (*msg.Link, error)
-	GetLinks() ([]*msg.Link, error)
+	GetLinkById(string, string) (*msg.Link, error)
 	GetLinksByBoxId(string) ([]*msg.Link, error)
-	DeleteLink(string) error
+	DeleteLink(string, string) error
 
 	//	NewNote(name string, text []byte, boxId string) (*msg.Note, error)
 	//	SaveNote(*msg.Note) error

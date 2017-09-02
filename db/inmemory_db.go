@@ -118,7 +118,7 @@ func (db *InMemoryDB) SaveLink(link *msg.Link) error {
 	return nil
 }
 
-func (db *InMemoryDB) GetLinkById(id string) (*msg.Link, error) {
+func (db *InMemoryDB) GetLinkById(box, id string) (*msg.Link, error) {
 	db.linksLock.Lock()
 	defer db.linksLock.Unlock()
 	if link, ok := db.links[id]; ok {
@@ -138,6 +138,9 @@ func (db *InMemoryDB) GetLinks() ([]*msg.Link, error) {
 }
 
 func (db *InMemoryDB) GetLinksByBoxId(id string) ([]*msg.Link, error) {
+	if _, ok := db.boxes[id]; !ok {
+		return nil, errors.New("No such box id")
+	}
 	db.linksLock.Lock()
 	defer db.linksLock.Unlock()
 	var links []*msg.Link
@@ -149,7 +152,10 @@ func (db *InMemoryDB) GetLinksByBoxId(id string) ([]*msg.Link, error) {
 	return links, nil
 }
 
-func (db *InMemoryDB) DeleteLink(id string) error {
+func (db *InMemoryDB) DeleteLink(boxId, id string) error {
+	if _, ok := db.boxes[boxId]; !ok {
+		return errors.New("No such box id")
+	}
 	db.linksLock.Lock()
 	defer db.linksLock.Unlock()
 	delete(db.links, id)

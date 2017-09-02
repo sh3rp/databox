@@ -12,6 +12,8 @@ var CONFIG_FILE = "bawx.config"
 
 type ClientConfig struct {
 	DefaultBoxId string `json:"default_box"`
+	Server       string `json:"server"`
+	Port         int    `json:"port"`
 }
 
 func (cfg *ClientConfig) Read() *ClientConfig {
