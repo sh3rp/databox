@@ -25,6 +25,11 @@ var linkUrl string
 var linkBoxId string
 var linkTags string
 
+var searchTerm string
+var searchCount int
+var searchPage int
+var searchLoadLinks bool
+
 var LinkCmd = &cobra.Command{
 	Use:   "link",
 	Short: "Manage your links",
@@ -183,6 +188,38 @@ var LinkTagCmd = &cobra.Command{
 			fmt.Printf("Error saving tags: %v\n", err)
 		} else {
 			util.PrettyPrint(link)
+		}
+	},
+}
+
+var LinkSearchCmd = &cobra.Command{
+	Use:   "find",
+	Short: "Find links based on tag search",
+	Run: func(cmd *cobra.Command, args []string) {
+		conn, err := grpc.Dial("127.0.0.1:5656", grpc.WithInsecure())
+
+		if err != nil {
+			panic(err)
+		}
+
+		defer conn.Close()
+
+		client := msg.NewBoxServiceClient(conn)
+		links, err := client.SearchLinks(context.Background(), &msg.Search{
+			Term:  searchTerm,
+			Count: int32(searchCount),
+			Page:  int32(searchPage),
+		})
+		if err != nil {
+			fmt.Printf("Error searching tags: %v\n", err)
+		} else {
+			util.PrettyPrint(links)
+		}
+
+		if searchLoadLinks {
+			for _, link := range links.Links {
+				open.Run(link.Url)
+			}
 		}
 	},
 }

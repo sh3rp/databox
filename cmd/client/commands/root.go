@@ -30,6 +30,11 @@ func init() {
 	LinkTagCmd.Flags().StringVarP(&linkId, "id", "i", "", "Link id")
 	LinkTagCmd.Flags().StringVarP(&linkTags, "tag", "t", "", "Tags to apply to link; comma delimited")
 
-	LinkCmd.AddCommand(LinkAddCmd, LinkGetLinksCmd, LinkLoadCmd, LinkTagCmd)
+	LinkSearchCmd.Flags().StringVarP(&searchTerm, "term", "t", "", "Tag term to search for")
+	LinkSearchCmd.Flags().IntVarP(&searchCount, "count", "c", 10, "Number of results to return back")
+	LinkSearchCmd.Flags().IntVarP(&searchPage, "page", "p", 0, "Result page to return")
+	LinkSearchCmd.Flags().BoolVarP(&searchLoadLinks, "load", "l", false, "Load the links returned in a browser")
+
+	LinkCmd.AddCommand(LinkAddCmd, LinkGetLinksCmd, LinkLoadCmd, LinkTagCmd, LinkSearchCmd)
 	RootCmd.AddCommand(BoxCmd, LinkCmd)
 }
