@@ -11,12 +11,20 @@ import (
 
 type SearchEngineTestSuite struct {
 	suite.Suite
-	NewSearchEngine func() SearchEngine
+	NewSearchEngine func() (SearchEngine, string)
 	SearchEngine    SearchEngine
+	TearDown        func(string)
+	ID              string
 }
 
 func (suite *SearchEngineTestSuite) SetupTest() {
-	suite.SearchEngine = suite.NewSearchEngine()
+	suite.SearchEngine, suite.ID = suite.NewSearchEngine()
+}
+
+func (suite *SearchEngineTestSuite) TearDownTest() {
+	if suite.TearDown != nil {
+		suite.TearDown(suite.ID)
+	}
 }
 
 func (suite *SearchEngineTestSuite) TestIndexLink() {
@@ -36,7 +44,7 @@ func (suite *SearchEngineTestSuite) TestIndexLink() {
 
 	assert.Nil(suite.T(), err)
 
-	assert.Equal(suite.T(), len(s.Find("fake", 10)), 1)
+	assert.Equal(suite.T(), len(s.Find("fake", 10, 0)), 1)
 }
 
 func (suite *SearchEngineTestSuite) TestIndexLinkUpdate() {
@@ -56,15 +64,15 @@ func (suite *SearchEngineTestSuite) TestIndexLinkUpdate() {
 
 	assert.Nil(suite.T(), err)
 
-	assert.Equal(suite.T(), len(s.Find("fake", 10)), 1)
+	assert.Equal(suite.T(), len(s.Find("fake", 10, 0)), 1)
 
 	link.Tags = []string{"real", "news"}
 
 	err = s.Index(Key(link.Id), link.Tags)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), 1, len(s.Find("real", 10)))
-	assert.Equal(suite.T(), 0, len(s.Find("fake", 10)))
+	assert.Equal(suite.T(), 1, len(s.Find("real", 10, 0)))
+	assert.Equal(suite.T(), 0, len(s.Find("fake", 10, 0)))
 }
 
 func (suite *SearchEngineTestSuite) TestIndexFindLink() {
@@ -82,7 +90,7 @@ func (suite *SearchEngineTestSuite) TestIndexFindLink() {
 		s.Index(Key(link.Id), link.Tags)
 	}
 
-	links := s.Find("search", 10)
+	links := s.Find("search", 10, 0)
 
 	assert.Equal(suite.T(), len(links), 10)
 }

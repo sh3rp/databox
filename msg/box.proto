@@ -11,8 +11,9 @@ service BoxService {
     rpc NewLink(Link) returns (Link) {}
     rpc SaveLink(Link) returns (Link) {}
     rpc GetLinkById(Link) returns (Link) {}
-    rpc GetLinks(None) returns (Links) {}
     rpc GetLinksByBoxId(Box) returns (Links) {}
+
+    rpc SearchLinks(Link) returns (Links) {}
 }
 
 message None {}

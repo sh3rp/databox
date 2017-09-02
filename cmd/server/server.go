@@ -5,6 +5,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/sh3rp/databox/db"
+	"github.com/sh3rp/databox/search"
 	"github.com/sh3rp/databox/web"
 )
 
@@ -15,7 +16,8 @@ var V_PATCH = 0
 func main() {
 	log.Info().Msgf("Loading databox %s", getVersion())
 	database := db.NewInMemoryDB()
-	server := web.NewServer(8080, 5656, database)
+	search := search.NewInMemorySearchEngine()
+	server := web.NewServer(8080, 5656, database, search)
 	server.Start()
 }
 

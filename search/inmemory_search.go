@@ -1,10 +1,5 @@
 package search
 
-import (
-	"crypto/sha256"
-	"strings"
-)
-
 type InMemorySearchEngine struct {
 	TermIndex        map[string][]Key
 	LinkTagSignature map[Key][]byte
@@ -21,10 +16,6 @@ func NewInMemorySearchEngine() SearchEngine {
 			Nodes: make(map[byte]*Node),
 		},
 	}
-}
-
-func (se *InMemorySearchEngine) ReIndex() {
-
 }
 
 func (se *InMemorySearchEngine) Index(id Key, inTags []string) error {
@@ -83,7 +74,7 @@ func (se *InMemorySearchEngine) UnIndex(id Key) error {
 	return nil
 }
 
-func (se *InMemorySearchEngine) Find(term string, limit int) []Key {
+func (se *InMemorySearchEngine) Find(term string, limit, page int) []Key {
 	termList := se.TermIndex[term]
 
 	if len(termList) <= limit {
@@ -93,38 +84,6 @@ func (se *InMemorySearchEngine) Find(term string, limit int) []Key {
 	}
 }
 
-func (se *InMemorySearchEngine) FindPartial(term string, limit int) []Key {
+func (se *InMemorySearchEngine) FindPartial(term string, limit, page int) []Key {
 	return nil
-}
-
-func normalizeTags(inTags []string) []string {
-	var tags []string
-	for _, t := range inTags {
-		if strings.Contains(t, " ") {
-			tempTags := strings.Split(t, " ")
-			for _, tt := range tempTags {
-				tags = append(tags, tt)
-			}
-		} else {
-			tags = append(tags, t)
-		}
-	}
-	return tags
-}
-
-func compareHashes(a, b []byte) bool {
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
-}
-
-func hashTags(tags []string) []byte {
-	hasher := sha256.New()
-	for _, t := range tags {
-		hasher.Write([]byte(t))
-	}
-	return hasher.Sum(nil)
 }

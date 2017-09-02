@@ -7,5 +7,11 @@ import (
 )
 
 func TestInMemorySearchEngine(t *testing.T) {
-	suite.Run(t, &SearchEngineTestSuite{NewSearchEngine: NewInMemorySearchEngine})
+	suite.Run(t, &SearchEngineTestSuite{
+		NewSearchEngine: getInMemorySearchEngine,
+	})
+}
+
+func getInMemorySearchEngine() (SearchEngine, string) {
+	return NewInMemorySearchEngine(), ""
 }
