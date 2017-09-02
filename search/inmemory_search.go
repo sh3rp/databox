@@ -20,11 +20,11 @@ func NewInMemorySearchEngine() SearchEngine {
 
 func (se *InMemorySearchEngine) Index(id Key, inTags []string) error {
 
-	tags := normalizeTags(inTags)
+	tags := NormalizeTags(inTags)
 
 	if _, ok := se.LinkTagSignature[id]; ok {
 		changed := len(tags) != len(se.LinkTagSignature[id]) &&
-			!compareHashes(hashTags(tags), se.LinkTagSignature[id])
+			!CompareHashes(HashTags(tags), se.LinkTagSignature[id])
 
 		if changed {
 			se.UnIndex(id)
@@ -46,7 +46,7 @@ func (se *InMemorySearchEngine) Index(id Key, inTags []string) error {
 		node.Leaves = append(node.Leaves, Key(t))
 	}
 
-	se.LinkTagSignature[id] = hashTags(tags)
+	se.LinkTagSignature[id] = HashTags(tags)
 	se.LinkTagList[id] = tags
 
 	return nil
