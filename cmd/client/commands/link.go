@@ -16,7 +16,6 @@ import (
 	"github.com/skratchdot/open-golang/open"
 	"github.com/spf13/cobra"
 	"github.com/yhat/scrape"
-	"google.golang.org/grpc"
 )
 
 var linkId string
@@ -39,7 +38,7 @@ var LinkAddCmd = &cobra.Command{
 	Use:   "new",
 	Short: "Add a link",
 	Run: func(cmd *cobra.Command, args []string) {
-		conn, err := grpc.Dial("127.0.0.1:5656", grpc.WithInsecure())
+		conn, err := Dial()
 
 		if err != nil {
 			panic(err)
@@ -79,7 +78,7 @@ var LinkAddCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		link, err := client.NewLink(context.Background(), &msg.Link{Name: linkName, Url: linkUrl, BoxId: linkBoxId})
+		link, err := client.NewLink(context.Background(), &msg.Link{Name: linkName, Url: linkUrl, BoxId: getBoxId()})
 
 		if err != nil {
 			fmt.Printf("Error creating link: %v\n", err)
@@ -93,7 +92,7 @@ var LinkGetLinksCmd = &cobra.Command{
 	Use:   "ls",
 	Short: "Get a link(s)",
 	Run: func(cmd *cobra.Command, args []string) {
-		conn, err := grpc.Dial("127.0.0.1:5656", grpc.WithInsecure())
+		conn, err := Dial()
 
 		if err != nil {
 			panic(err)
@@ -114,7 +113,7 @@ var LinkGetLinksCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		links, err := client.GetLinksByBoxId(context.Background(), &msg.Box{Id: linkBoxId})
+		links, err := client.GetLinksByBoxId(context.Background(), &msg.Box{Id: getBoxId()})
 
 		if err != nil {
 			fmt.Printf("Error getting links: %v\n", err)
@@ -128,7 +127,7 @@ var LinkLoadCmd = &cobra.Command{
 	Use:   "load",
 	Short: "Load a link(s)",
 	Run: func(cmd *cobra.Command, args []string) {
-		conn, err := grpc.Dial("127.0.0.1:5656", grpc.WithInsecure())
+		conn, err := Dial()
 
 		if err != nil {
 			panic(err)
@@ -138,7 +137,7 @@ var LinkLoadCmd = &cobra.Command{
 
 		client := msg.NewBoxServiceClient(conn)
 
-		link, err := client.GetLinkById(context.Background(), &msg.Link{Id: linkId})
+		link, err := client.GetLinkById(context.Background(), &msg.Link{Id: linkId, BoxId: getBoxId()})
 
 		if err != nil {
 			fmt.Printf("Error getting link: %v\n", err)
@@ -152,7 +151,7 @@ var LinkTagCmd = &cobra.Command{
 	Use:   "tag",
 	Short: "Tag a link",
 	Run: func(cmd *cobra.Command, args []string) {
-		conn, err := grpc.Dial("127.0.0.1:5656", grpc.WithInsecure())
+		conn, err := Dial()
 
 		if err != nil {
 			panic(err)
@@ -161,7 +160,7 @@ var LinkTagCmd = &cobra.Command{
 		defer conn.Close()
 
 		client := msg.NewBoxServiceClient(conn)
-		link, err := client.GetLinkById(context.Background(), &msg.Link{Id: linkId, BoxId: linkBoxId})
+		link, err := client.GetLinkById(context.Background(), &msg.Link{Id: linkId, BoxId: getBoxId()})
 
 		if err != nil {
 			fmt.Printf("Error getting link: %v\n", err)
@@ -196,7 +195,7 @@ var LinkSearchCmd = &cobra.Command{
 	Use:   "find",
 	Short: "Find links based on tag search",
 	Run: func(cmd *cobra.Command, args []string) {
-		conn, err := grpc.Dial("127.0.0.1:5656", grpc.WithInsecure())
+		conn, err := Dial()
 
 		if err != nil {
 			panic(err)
@@ -222,4 +221,14 @@ var LinkSearchCmd = &cobra.Command{
 			}
 		}
 	},
+}
+
+func getBoxId() string {
+	if linkBoxId != "" {
+		return linkBoxId
+	} else {
+		clientConfig := &config.ClientConfig{}
+		clientConfig.Read()
+		return clientConfig.DefaultBoxId
+	}
 }

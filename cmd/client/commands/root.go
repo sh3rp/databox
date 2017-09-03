@@ -1,6 +1,15 @@
 package commands
 
-import "github.com/spf13/cobra"
+import (
+	"crypto/tls"
+	"fmt"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
+
+	"github.com/sh3rp/databox/config"
+	"github.com/spf13/cobra"
+)
 
 var RootCmd = &cobra.Command{
 	Use:   "bawx",
@@ -37,5 +46,21 @@ func init() {
 	LinkSearchCmd.Flags().BoolVarP(&searchLoadLinks, "load", "l", false, "Load the links returned in a browser")
 
 	LinkCmd.AddCommand(LinkAddCmd, LinkGetLinksCmd, LinkLoadCmd, LinkTagCmd, LinkSearchCmd)
-	RootCmd.AddCommand(BoxCmd, LinkCmd)
+	RootCmd.AddCommand(BoxCmd, LinkCmd, ConfigCmd)
+}
+
+func GetHost() string {
+	clientConfig := &config.ClientConfig{}
+	clientConfig.Read()
+	return fmt.Sprintf("%s:%d", clientConfig.Server, clientConfig.Port)
+}
+
+func Dial() (*grpc.ClientConn, error) {
+	tlsConfig := &tls.Config{
+		ServerName:         "",
+		RootCAs:            nil,
+		InsecureSkipVerify: true,
+	}
+	creds := credentials.NewTLS(tlsConfig)
+	return grpc.Dial(GetHost(), grpc.WithTransportCredentials(creds))
 }

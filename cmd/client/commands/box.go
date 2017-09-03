@@ -9,8 +9,6 @@ import (
 	"github.com/sh3rp/databox/msg"
 	"github.com/sh3rp/databox/util"
 
-	"google.golang.org/grpc"
-
 	"github.com/spf13/cobra"
 )
 
@@ -29,7 +27,7 @@ var BoxNewCmd = &cobra.Command{
 	Use:   "new",
 	Short: "Create a new box",
 	Run: func(cmd *cobra.Command, args []string) {
-		conn, err := grpc.Dial("127.0.0.1:5656", grpc.WithInsecure())
+		conn, err := Dial()
 
 		if err != nil {
 			panic(err)
@@ -64,7 +62,7 @@ var BoxListCmd = &cobra.Command{
 	Use:   "ls",
 	Short: "List all boxes",
 	Run: func(cmd *cobra.Command, args []string) {
-		conn, err := grpc.Dial("127.0.0.1:5656", grpc.WithInsecure())
+		conn, err := Dial()
 
 		if err != nil {
 			panic(err)
@@ -88,7 +86,7 @@ var BoxSetCmd = &cobra.Command{
 	Use:   "set",
 	Short: "Set the current box",
 	Run: func(cmd *cobra.Command, args []string) {
-		conn, err := grpc.Dial("127.0.0.1:5656", grpc.WithInsecure())
+		conn, err := Dial()
 
 		if err != nil {
 			panic(err)
@@ -108,7 +106,6 @@ var BoxSetCmd = &cobra.Command{
 		cfg := &config.ClientConfig{}
 		cfg.Read()
 		cfg.DefaultBoxId = box.Id
-		fmt.Printf("%v\n", cfg)
 		cfg.Write()
 
 		fmt.Printf("Set default box to %s\n", box.Name)

@@ -10,6 +10,8 @@ type ServerConfig struct {
 	GrpcPort      int    `json:"grpc_port"`
 	HttpPort      int    `json:"http_port"`
 	DataDirectory string `json:"data_directory"`
+	CertFile      string `json:"cert_file"`
+	KeyFile       string `json:"key_file"`
 }
 
 func (cfg *ServerConfig) Read(filename string) {

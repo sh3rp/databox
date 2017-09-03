@@ -1,6 +1,7 @@
 package web
 
 import (
+	"crypto/tls"
 	"fmt"
 	"net"
 	"os"
@@ -8,8 +9,10 @@ import (
 	"golang.org/x/net/context"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 
 	"github.com/rs/zerolog/log"
+	"github.com/sh3rp/databox/config"
 	"github.com/sh3rp/databox/db"
 	"github.com/sh3rp/databox/msg"
 	"github.com/sh3rp/databox/search"
@@ -23,6 +26,14 @@ type GRPCServer struct {
 }
 
 func (s *GRPCServer) Start() {
+	serverConfig := &config.ServerConfig{}
+	serverConfig.Read("server.json")
+
+	credentials, err := getTLSCredentials(serverConfig.CertFile, serverConfig.KeyFile)
+	if err != nil {
+		panic(err)
+	}
+
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", s.Port))
 
 	if err != nil {
@@ -30,7 +41,8 @@ func (s *GRPCServer) Start() {
 		os.Exit(1)
 	}
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(grpc.Creds(credentials))
+
 	msg.RegisterBoxServiceServer(grpcServer, s)
 	grpcServer.Serve(listener)
 }
@@ -131,4 +143,14 @@ func (s *GRPCServer) SearchLinks(ctx context.Context, search *msg.Search) (*msg.
 		links = append(links, link)
 	}
 	return &msg.Links{links}, nil
+}
+
+func getTLSCredentials(certFile, keyFile string) (credentials.TransportCredentials, error) {
+	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+	if err != nil {
+		return nil, err
+	}
+	return credentials.NewTLS(&tls.Config{
+		Certificates: []tls.Certificate{cert},
+	}), nil
 }
