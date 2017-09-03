@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/gob"
 	"errors"
-	"fmt"
 
 	"github.com/boltdb/bolt"
 	"github.com/sh3rp/databox/msg"
@@ -99,10 +98,6 @@ func (db *BoltDB) GetLinksByBoxId(id string) ([]*msg.Link, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	links, err := db.getAllLinks(id)
-
-	fmt.Printf("getLinksByBoxId: %v\n", links)
 
 	return db.getAllLinks(id)
 }
