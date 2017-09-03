@@ -6,6 +6,7 @@ import (
 	"errors"
 
 	"github.com/boltdb/bolt"
+	"github.com/emirpasic/gods/sets/treeset"
 	"github.com/sh3rp/databox/msg"
 )
 
@@ -132,6 +133,18 @@ func (db *BoltDB) insertBox(box *msg.Box) error {
 }
 
 func (db *BoltDB) insertLink(link *msg.Link) error {
+	var dedupedTags []string
+	if len(link.Tags) > 0 {
+		set := treeset.NewWithStringComparator()
+		for _, t := range link.Tags {
+			set.Add(t)
+		}
+		for _, v := range set.Values() {
+			dedupedTags = append(dedupedTags, v.(string))
+		}
+	}
+	link.Tags = dedupedTags
+
 	var data bytes.Buffer
 	err := gob.NewEncoder(&data).Encode(link)
 

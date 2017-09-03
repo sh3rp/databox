@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"strings"
 
+	"github.com/emirpasic/gods/sets/treeset"
 	"github.com/sh3rp/databox/msg"
 )
 
@@ -38,15 +39,19 @@ type Node struct {
 
 func NormalizeTags(inTags []string) []string {
 	var tags []string
+	set := treeset.NewWithStringComparator()
 	for _, t := range inTags {
 		if strings.Contains(t, " ") {
 			tempTags := strings.Split(t, " ")
 			for _, tt := range tempTags {
-				tags = append(tags, tt)
+				set.Add(tt)
 			}
 		} else {
-			tags = append(tags, t)
+			set.Add(t)
 		}
+	}
+	for _, v := range set.Values() {
+		tags = append(tags, v.(string))
 	}
 	return tags
 }

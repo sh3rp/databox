@@ -94,3 +94,18 @@ func (suite *SearchEngineTestSuite) TestIndexFindLink() {
 
 	assert.Equal(suite.T(), len(links), 10)
 }
+
+func (suite *SearchEngineTestSuite) TestIndexFindLinkDups() {
+	s := suite.SearchEngine
+	tags := []string{"fake", "news"}
+	id := db.GenerateID()
+	boxId := db.GenerateID()
+	key := Key{ID: id, BoxId: boxId}
+	err := s.Index(key, tags)
+	assert.Nil(suite.T(), err)
+	err = s.Index(key, tags)
+	assert.Nil(suite.T(), err)
+
+	keys := s.Find("fake", 10, 0)
+	assert.Equal(suite.T(), 1, len(keys))
+}

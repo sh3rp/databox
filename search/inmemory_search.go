@@ -19,6 +19,9 @@ func NewInMemorySearchEngine() SearchEngine {
 }
 
 func (se *InMemorySearchEngine) Index(id Key, inTags []string) error {
+	if len(inTags) == 0 {
+		return nil
+	}
 
 	tags := NormalizeTags(inTags)
 
