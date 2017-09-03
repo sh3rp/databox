@@ -97,15 +97,17 @@ func (s *BoltSearchEngine) addTermMatch(term string, key Key) {
 
 func (s *BoltSearchEngine) removeTermMatch(term string, key Key) {
 	matches := s.getTermMatches(term)
-	var i int
-	for ; i < len(matches); i++ {
-		if matches[i] == key {
-			break
+	if len(matches) > 0 {
+		var i int
+		for ; i < len(matches); i++ {
+			if matches[i] == key {
+				break
+			}
 		}
+		newMatches := matches[:i]
+		newMatches = append(newMatches, matches[i+1:]...)
+		s.saveTermMatches(term, newMatches)
 	}
-	newMatches := matches[:i]
-	newMatches = append(newMatches, matches[i+1:]...)
-	s.saveTermMatches(term, newMatches)
 }
 
 func (s *BoltSearchEngine) getTermMatches(term string) []Key {

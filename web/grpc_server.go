@@ -13,6 +13,7 @@ import (
 	"github.com/sh3rp/databox/db"
 	"github.com/sh3rp/databox/msg"
 	"github.com/sh3rp/databox/search"
+	"github.com/sh3rp/databox/util"
 )
 
 type GRPCServer struct {
@@ -32,6 +33,10 @@ func (s *GRPCServer) Start() {
 	grpcServer := grpc.NewServer()
 	msg.RegisterBoxServiceServer(grpcServer, s)
 	grpcServer.Serve(listener)
+}
+
+func (s *GRPCServer) GetVersion(ctx context.Context, none *msg.None) (*msg.Version, error) {
+	return util.GetVersion(), nil
 }
 
 func (s *GRPCServer) NewBox(ctx context.Context, box *msg.Box) (*msg.Box, error) {

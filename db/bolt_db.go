@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"errors"
+	"fmt"
 
 	"github.com/boltdb/bolt"
 	"github.com/sh3rp/databox/msg"
@@ -98,6 +99,10 @@ func (db *BoltDB) GetLinksByBoxId(id string) ([]*msg.Link, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	links, err := db.getAllLinks(id)
+
+	fmt.Printf("getLinksByBoxId: %v\n", links)
 
 	return db.getAllLinks(id)
 }
@@ -232,7 +237,7 @@ func (db *BoltDB) getAllLinks(box string) ([]*msg.Link, error) {
 
 	for _, kv := range allKvs {
 		buf := &bytes.Buffer{}
-		_, err = buf.Read(kv.V)
+		_, err = buf.Write(kv.V)
 		obj := &msg.Link{}
 		err = gob.NewDecoder(buf).Decode(obj)
 		objs = append(objs, obj)

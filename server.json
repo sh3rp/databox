@@ -1,0 +1,5 @@
+{
+    "grpc_port":5656,
+    "http_port":8080,
+    "data_directory":"/tmp/bawx"
+}

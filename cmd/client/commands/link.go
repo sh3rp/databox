@@ -161,7 +161,7 @@ var LinkTagCmd = &cobra.Command{
 		defer conn.Close()
 
 		client := msg.NewBoxServiceClient(conn)
-		link, err := client.GetLinkById(context.Background(), &msg.Link{Id: linkId})
+		link, err := client.GetLinkById(context.Background(), &msg.Link{Id: linkId, BoxId: linkBoxId})
 
 		if err != nil {
 			fmt.Printf("Error getting link: %v\n", err)

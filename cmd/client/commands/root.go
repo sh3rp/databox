@@ -28,6 +28,7 @@ func init() {
 	LinkGetLinksCmd.Flags().StringVarP(&linkTags, "tag", "t", "", "Tag to search for")
 
 	LinkTagCmd.Flags().StringVarP(&linkId, "id", "i", "", "Link id")
+	LinkTagCmd.Flags().StringVarP(&linkBoxId, "box", "b", "", "Box that link is in")
 	LinkTagCmd.Flags().StringVarP(&linkTags, "tag", "t", "", "Tags to apply to link; comma delimited")
 
 	LinkSearchCmd.Flags().StringVarP(&searchTerm, "term", "t", "", "Tag term to search for")
