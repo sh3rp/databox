@@ -1,12 +1,21 @@
 hash: 2c7a734d569912711eeb1205ef1cfe2ecaff83237df2f43adfd34f26cebe5c76
-updated: 2017-09-02T18:43:19.947801023-04:00
+updated: 2017-09-04T15:33:44.459307491-04:00
 imports:
 - name: github.com/boltdb/bolt
   version: 2f1ce7a837dcb8da3ec595b1dac9d0632f0f99e8
+- name: github.com/emirpasic/gods
+  version: f6c17b524822278a87e3b3bd809fec33b51f5b46
+  subpackages:
+  - containers
+  - sets
+  - sets/treeset
+  - trees
+  - trees/redblacktree
+  - utils
 - name: github.com/gin-contrib/sse
   version: 22d885f9ecc78bf4ee5d72b937e4bbcdc58e8cae
 - name: github.com/gin-gonic/gin
-  version: ab50cf97900b63748a62a81c06c9189ef536d121
+  version: cdf26f994bb551da109f4e4b8f206d8db4fdb354
   subpackages:
   - binding
   - json

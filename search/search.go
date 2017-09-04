@@ -5,24 +5,26 @@ import (
 	"strings"
 
 	"github.com/emirpasic/gods/sets/treeset"
-	"github.com/sh3rp/databox/db"
+	"github.com/sh3rp/databox/msg"
 )
 
 type SearchEngine interface {
-	Index(db.Key, []string) error
-	UnIndex(db.Key) error
-	Find(string, int, int) []db.Key
-	FindPartial(string, int, int) []db.Key
+	Index(msg.Key, []string) error
+	UnIndex(msg.Key) error
+	Find(string, int, int) []msg.Key
+	FindPartial(string, int, int) []msg.Key
 }
 
 type Node struct {
 	Char   byte
 	Nodes  map[byte]*Node
-	Leaves []db.Key
+	Leaves []msg.Key
 }
 
 func NormalizeTags(inTags []string) []string {
-	var tags []string
+	if len(inTags) == 0 {
+		return nil
+	}
 	set := treeset.NewWithStringComparator()
 	for _, t := range inTags {
 		if strings.Contains(t, " ") {
@@ -34,6 +36,8 @@ func NormalizeTags(inTags []string) []string {
 			set.Add(t)
 		}
 	}
+
+	var tags []string
 	for _, v := range set.Values() {
 		tags = append(tags, v.(string))
 	}
