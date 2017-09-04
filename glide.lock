@@ -1,5 +1,5 @@
 hash: 2c7a734d569912711eeb1205ef1cfe2ecaff83237df2f43adfd34f26cebe5c76
-updated: 2017-09-04T15:33:44.459307491-04:00
+updated: 2017-09-04T17:08:24.82583082-04:00
 imports:
 - name: github.com/boltdb/bolt
   version: 2f1ce7a837dcb8da3ec595b1dac9d0632f0f99e8
@@ -8,6 +8,7 @@ imports:
   subpackages:
   - containers
   - sets
+  - sets/hashset
   - sets/treeset
   - trees
   - trees/redblacktree

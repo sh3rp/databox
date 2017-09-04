@@ -73,7 +73,7 @@ func (s *GRPCServer) SaveBox(ctx context.Context, box *msg.Box) (*msg.Box, error
 
 func (s *GRPCServer) GetBoxById(ctx context.Context, box *msg.Box) (*msg.Box, error) {
 
-	box, err := s.DB.GetBoxById(box.Id)
+	box, err := s.DB.GetBoxById(*box.Id)
 
 	if err != nil {
 		return nil, err
@@ -93,24 +93,30 @@ func (s *GRPCServer) GetBoxes(ctx context.Context, none *msg.None) (*msg.Boxes, 
 }
 
 func (s *GRPCServer) NewLink(ctx context.Context, link *msg.Link) (*msg.Link, error) {
-	_, err := s.DB.GetBoxById(link.BoxId)
+	box, err := s.DB.GetBoxById(msg.Key{
+		Type: msg.Key_BOX,
+		Id:   link.Id.BoxId,
+	})
 
 	if err != nil {
 		return nil, err
 	}
 
-	link, err = s.DB.NewLink(link.Name, link.Url, link.BoxId)
+	link, err = s.DB.NewLink(link.Name, link.Url, *box.Id)
 
 	if err != nil {
 		return nil, err
 	}
 
-	err = s.Search.Index(search.GetKey(link), link.Tags)
+	err = s.Search.Index(*link.Id, link.Tags)
 
 	return link, err
 }
 func (s *GRPCServer) SaveLink(ctx context.Context, link *msg.Link) (*msg.Link, error) {
-	_, err := s.DB.GetBoxById(link.BoxId)
+	_, err := s.DB.GetBoxById(msg.Key{
+		Type: msg.Key_BOX,
+		Id:   link.Id.BoxId,
+	})
 
 	if err != nil {
 		return nil, err
@@ -122,15 +128,15 @@ func (s *GRPCServer) SaveLink(ctx context.Context, link *msg.Link) (*msg.Link, e
 		return nil, err
 	}
 
-	err = s.Search.Index(search.GetKey(link), link.Tags)
+	err = s.Search.Index(*link.Id, link.Tags)
 
 	return link, err
 }
 func (s *GRPCServer) GetLinkById(ctx context.Context, link *msg.Link) (*msg.Link, error) {
-	return s.DB.GetLinkById(link.BoxId, link.Id)
+	return s.DB.GetLinkById(*link.Id)
 }
 func (s *GRPCServer) GetLinksByBoxId(ctx context.Context, box *msg.Box) (*msg.Links, error) {
-	links, err := s.DB.GetLinksByBoxId(box.Id)
+	links, err := s.DB.GetLinksByBoxId(*box.Id)
 
 	return &msg.Links{links}, err
 }
@@ -139,7 +145,7 @@ func (s *GRPCServer) SearchLinks(ctx context.Context, search *msg.Search) (*msg.
 	linkIds := s.Search.Find(search.Term, int(search.Count), int(search.Page))
 
 	for _, id := range linkIds {
-		link, _ := s.DB.GetLinkById(id.BoxId, id.ID)
+		link, _ := s.DB.GetLinkById(id)
 		links = append(links, link)
 	}
 	return &msg.Links{links}, nil

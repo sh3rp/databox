@@ -10,6 +10,7 @@ linuxfast: protobuf serverlinux clientlinux
 
 test:
 	go test db/* -cover -v
+	go test search/* -cover -v
 
 serverdarwin:
 	GOOS=darwin GOARCH=amd64 go build -o bawx-server.darwin cmd/server/server.go

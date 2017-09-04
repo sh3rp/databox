@@ -31,7 +31,7 @@ func (s *HttpServer) Start() {
 		var box msg.Box
 		err := c.BindJSON(&box)
 		if err == nil {
-			if box.Id == "" {
+			if box.Id == nil {
 				newBox, err := db.NewBox(box.Name, box.Description)
 				if err != nil {
 					c.JSON(200, Error(E_DB_CREATE_BOX, err))
@@ -49,7 +49,7 @@ func (s *HttpServer) Start() {
 	r.GET("/box/:id", func(c *gin.Context) {
 		id := c.Param("id")
 
-		box, err := s.DB.GetBoxById(id)
+		box, err := s.DB.GetBoxById(msg.Key{Id: id, Type: msg.Key_BOX})
 
 		if err == nil {
 			c.JSON(200, Success(box))
@@ -61,7 +61,7 @@ func (s *HttpServer) Start() {
 	r.GET("/box/:id/link", func(c *gin.Context) {
 		id := c.Param("id")
 
-		links, err := db.GetLinksByBoxId(id)
+		links, err := db.GetLinksByBoxId(msg.Key{Id: id, Type: msg.Key_BOX})
 
 		if err == nil {
 			c.JSON(200, Success(links))
@@ -82,17 +82,17 @@ func (s *HttpServer) Start() {
 			return
 		}
 
-		_, err = s.DB.GetBoxById(boxId)
+		box, err := s.DB.GetBoxById(msg.Key{Id: boxId, Type: msg.Key_BOX})
 
 		if err != nil {
 			c.JSON(200, Error(E_DB_BOX_NOT_FOUND, err))
 			return
 		}
 
-		link, err := s.DB.GetLinkById(linkUpdate.BoxId, linkUpdate.Id)
+		link, err := s.DB.GetLinkById(*linkUpdate.Id)
 
 		if err != nil {
-			link, err = s.DB.NewLink(linkUpdate.Name, linkUpdate.Url, boxId)
+			link, err = s.DB.NewLink(linkUpdate.Name, linkUpdate.Url, *box.Id)
 
 			if err != nil {
 				c.JSON(200, Error(E_DB_CREATE_LINK, err))
@@ -101,7 +101,7 @@ func (s *HttpServer) Start() {
 				c.JSON(200, Success(link))
 			}
 		} else {
-			linkUpdate.BoxId = boxId
+			linkUpdate.Id.BoxId = box.Id.Id
 			err = s.DB.SaveLink(&linkUpdate)
 			if err != nil {
 				c.JSON(200, Error(E_DB_UPDATE_LINK, err))
@@ -115,7 +115,7 @@ func (s *HttpServer) Start() {
 	r.GET("/box/:id/link/:linkId", func(c *gin.Context) {
 		boxId := c.Param("id")
 
-		_, err := s.DB.GetBoxById(boxId)
+		_, err := s.DB.GetBoxById(msg.Key{Id: boxId, Type: msg.Key_BOX})
 
 		if err != nil {
 			c.JSON(200, Error(E_DB_BOX_NOT_FOUND, err))
@@ -124,7 +124,7 @@ func (s *HttpServer) Start() {
 
 		linkId := c.Param("linkId")
 
-		link, err := s.DB.GetLinkById(boxId, linkId)
+		link, err := s.DB.GetLinkById(msg.Key{Id: linkId, BoxId: boxId, Type: msg.Key_LINK})
 
 		if err != nil {
 			c.JSON(200, Error(E_DB_LINK_NOT_FOUND, err))
@@ -132,12 +132,6 @@ func (s *HttpServer) Start() {
 		} else {
 			c.JSON(200, Success(link))
 		}
-	})
-	r.GET("/box/:id/image", func(c *gin.Context) {
-
-	})
-	r.POST("/box/:id/image/:imageId", func(c *gin.Context) {
-
 	})
 	r.Run(fmt.Sprintf(":%d", s.Port))
 }
