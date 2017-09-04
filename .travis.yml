@@ -1,4 +1,5 @@
 language: go
+script: make linux
 go:
   - 1.9.x
 install:
