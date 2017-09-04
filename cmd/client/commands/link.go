@@ -78,7 +78,7 @@ var LinkAddCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		link, err := client.NewLink(context.Background(), &msg.Link{Name: linkName, Url: linkUrl, BoxId: getBoxId()})
+		link, err := client.NewLink(context.Background(), &msg.Link{Id: &msg.Key{BoxId: getBoxId()}, Name: linkName, Url: linkUrl})
 
 		if err != nil {
 			fmt.Printf("Error creating link: %v\n", err)
@@ -113,7 +113,7 @@ var LinkGetLinksCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		links, err := client.GetLinksByBoxId(context.Background(), &msg.Box{Id: getBoxId()})
+		links, err := client.GetLinksByBoxId(context.Background(), &msg.Box{Id: &msg.Key{Id: getBoxId(), Type: msg.Key_BOX}})
 
 		if err != nil {
 			fmt.Printf("Error getting links: %v\n", err)
@@ -137,7 +137,7 @@ var LinkLoadCmd = &cobra.Command{
 
 		client := msg.NewBoxServiceClient(conn)
 
-		link, err := client.GetLinkById(context.Background(), &msg.Link{Id: linkId, BoxId: getBoxId()})
+		link, err := client.GetLinkById(context.Background(), &msg.Link{Id: &msg.Key{Id: linkId, BoxId: getBoxId(), Type: msg.Key_LINK}})
 
 		if err != nil {
 			fmt.Printf("Error getting link: %v\n", err)
@@ -160,7 +160,7 @@ var LinkTagCmd = &cobra.Command{
 		defer conn.Close()
 
 		client := msg.NewBoxServiceClient(conn)
-		link, err := client.GetLinkById(context.Background(), &msg.Link{Id: linkId, BoxId: getBoxId()})
+		link, err := client.GetLinkById(context.Background(), &msg.Link{Id: &msg.Key{Id: linkId, BoxId: getBoxId(), Type: msg.Key_LINK}})
 
 		if err != nil {
 			fmt.Printf("Error getting link: %v\n", err)

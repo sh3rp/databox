@@ -50,7 +50,7 @@ var BoxNewCmd = &cobra.Command{
 			if setBoxEnv {
 				cfg := &config.ClientConfig{}
 				cfg.Read()
-				cfg.DefaultBoxId = box.Id
+				cfg.DefaultBoxId = box.Id.Id
 				cfg.Write()
 			}
 			util.PrettyPrint(box)
@@ -96,7 +96,7 @@ var BoxSetCmd = &cobra.Command{
 
 		client := msg.NewBoxServiceClient(conn)
 
-		box, err := client.GetBoxById(context.Background(), &msg.Box{Id: boxId})
+		box, err := client.GetBoxById(context.Background(), &msg.Box{Id: &msg.Key{Id: boxId, Type: msg.Key_BOX}})
 
 		if err != nil {
 			fmt.Printf("Error getting box: %v\n", err)
@@ -105,7 +105,7 @@ var BoxSetCmd = &cobra.Command{
 
 		cfg := &config.ClientConfig{}
 		cfg.Read()
-		cfg.DefaultBoxId = box.Id
+		cfg.DefaultBoxId = box.Id.Id
 		cfg.Write()
 
 		fmt.Printf("Set default box to %s\n", box.Name)
