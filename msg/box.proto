@@ -18,6 +18,18 @@ service BoxService {
     rpc SearchLinks(Search) returns (Links) {}
 }
 
+message Key {
+    enum Type {
+        BOX = 0;
+        LINK = 1;
+        NOTE = 2;
+        NOTE_SECURE = 3;
+    }
+    Type type = 1;
+    string id = 2;
+    string boxId = 3;
+}
+
 message None {}
 
 message Version {
@@ -33,7 +45,7 @@ message Search {
 }
 
 message Box {
-    string id = 1;
+    Key id = 1;
     string name = 2;
     string description = 3;
 }
@@ -43,13 +55,12 @@ message Boxes {
 }
 
 message Link {
-    string id = 1;
+    Key id = 1;
     string name = 2;
     string url = 3;
     string description = 4;
     repeated string tags = 5;
-    string boxId = 6;
-    int64 createdOn = 7;
+    int64 createdOn = 6;
 }
 
 message Links {

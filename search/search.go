@@ -5,36 +5,20 @@ import (
 	"strings"
 
 	"github.com/emirpasic/gods/sets/treeset"
-	"github.com/sh3rp/databox/msg"
+	"github.com/sh3rp/databox/db"
 )
 
 type SearchEngine interface {
-	Index(Key, []string) error
-	UnIndex(Key) error
-	Find(string, int, int) []Key
-	FindPartial(string, int, int) []Key
-}
-
-type Key struct {
-	ID    string
-	BoxId string
-}
-
-func (k Key) GetId() []byte {
-	return []byte(k.BoxId + "-" + k.ID)
-}
-
-func GetKey(link *msg.Link) Key {
-	return Key{
-		ID:    link.Id,
-		BoxId: link.BoxId,
-	}
+	Index(db.Key, []string) error
+	UnIndex(db.Key) error
+	Find(string, int, int) []db.Key
+	FindPartial(string, int, int) []db.Key
 }
 
 type Node struct {
 	Char   byte
 	Nodes  map[byte]*Node
-	Leaves []Key
+	Leaves []db.Key
 }
 
 func NormalizeTags(inTags []string) []string {

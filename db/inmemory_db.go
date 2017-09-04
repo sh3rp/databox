@@ -8,17 +8,17 @@ import (
 )
 
 type InMemoryDB struct {
-	boxes      map[string]*msg.Box
+	boxes      map[msg.Key]*msg.Box
 	boxesLock  *sync.Mutex
-	links      map[string]*msg.Link
+	links      map[msg.Key]*msg.Link
 	linksLock  *sync.Mutex
 	defaultBox *msg.Box
 }
 
 func NewInMemoryDB() BoxDB {
 	db := InMemoryDB{
-		boxes:     make(map[string]*msg.Box),
-		links:     make(map[string]*msg.Link),
+		boxes:     make(map[msg.Key]*msg.Box),
+		links:     make(map[msg.Key]*msg.Link),
 		boxesLock: new(sync.Mutex),
 		linksLock: new(sync.Mutex),
 	}
@@ -34,28 +34,28 @@ func (db *InMemoryDB) NewBox(name string, description string) (*msg.Box, error) 
 		return nil, errors.New("Description must not be empty")
 	}
 	box := &msg.Box{
-		Id:          GenerateID(),
+		Id:          NewBoxKey(),
 		Name:        name,
 		Description: description,
 	}
 	db.boxesLock.Lock()
 	defer db.boxesLock.Unlock()
-	db.boxes[box.Id] = box
-	db.defaultBox = db.boxes[box.Id]
+	db.boxes[*box.Id] = box
+	db.defaultBox = db.boxes[*box.Id]
 	return box, nil
 }
 
 func (db *InMemoryDB) SaveBox(box *msg.Box) error {
 	db.boxesLock.Lock()
 	defer db.boxesLock.Unlock()
-	if box.Id == "" {
+	if box.Id == nil {
 		return errors.New("No id set, cannot save box")
 	}
-	db.boxes[box.Id] = box
+	db.boxes[*box.Id] = box
 	return nil
 }
 
-func (db *InMemoryDB) GetBoxById(id string) (*msg.Box, error) {
+func (db *InMemoryDB) GetBoxById(id msg.Key) (*msg.Box, error) {
 	db.boxesLock.Lock()
 	defer db.boxesLock.Unlock()
 	if box, ok := db.boxes[id]; ok {
@@ -74,7 +74,7 @@ func (db *InMemoryDB) GetBoxes() ([]*msg.Box, error) {
 	return boxes, nil
 }
 
-func (db *InMemoryDB) DeleteBox(id string) error {
+func (db *InMemoryDB) DeleteBox(id msg.Key) error {
 	db.boxesLock.Lock()
 	defer db.boxesLock.Unlock()
 	delete(db.boxes, id)
@@ -85,8 +85,8 @@ func (db *InMemoryDB) GetDefaultBox() (*msg.Box, error) {
 	return db.defaultBox, nil
 }
 
-func (db *InMemoryDB) NewLink(name string, url string, boxId string) (*msg.Link, error) {
-	if boxId == "" {
+func (db *InMemoryDB) NewLink(name string, url string, boxId msg.Key) (*msg.Link, error) {
+	if boxId.Id == "" {
 		return nil, errors.New("Cannot specify empty box ID")
 	}
 
@@ -97,28 +97,37 @@ func (db *InMemoryDB) NewLink(name string, url string, boxId string) (*msg.Link,
 	}
 
 	link := &msg.Link{
-		Id:    GenerateID(),
-		Name:  name,
-		Url:   url,
-		BoxId: boxId,
+		Id:   NewLinkKey(&boxId),
+		Name: name,
+		Url:  url,
 	}
 	db.linksLock.Lock()
 	defer db.linksLock.Unlock()
-	db.links[link.Id] = link
+	db.links[*link.Id] = link
 	return link, nil
 }
 
 func (db *InMemoryDB) SaveLink(link *msg.Link) error {
 	db.linksLock.Lock()
 	defer db.linksLock.Unlock()
-	if _, ok := db.boxes[link.BoxId]; !ok {
+
+	box, err := db.GetBoxById(msg.Key{
+		Type: msg.Key_BOX,
+		Id:   link.Id.BoxId,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	if _, ok := db.boxes[*box.Id]; !ok {
 		return errors.New("Box id doesn't exist")
 	}
-	db.links[link.Id] = link
+	db.links[*link.Id] = link
 	return nil
 }
 
-func (db *InMemoryDB) GetLinkById(box, id string) (*msg.Link, error) {
+func (db *InMemoryDB) GetLinkById(id msg.Key) (*msg.Link, error) {
 	db.linksLock.Lock()
 	defer db.linksLock.Unlock()
 	if link, ok := db.links[id]; ok {
@@ -137,7 +146,7 @@ func (db *InMemoryDB) GetLinks() ([]*msg.Link, error) {
 	return links, nil
 }
 
-func (db *InMemoryDB) GetLinksByBoxId(id string) ([]*msg.Link, error) {
+func (db *InMemoryDB) GetLinksByBoxId(id msg.Key) ([]*msg.Link, error) {
 	if _, ok := db.boxes[id]; !ok {
 		return nil, errors.New("No such box id")
 	}
@@ -145,17 +154,24 @@ func (db *InMemoryDB) GetLinksByBoxId(id string) ([]*msg.Link, error) {
 	defer db.linksLock.Unlock()
 	var links []*msg.Link
 	for _, v := range db.links {
-		if v.BoxId == id {
+		if v.Id.BoxId == id.Id {
 			links = append(links, v)
 		}
 	}
 	return links, nil
 }
 
-func (db *InMemoryDB) DeleteLink(boxId, id string) error {
-	if _, ok := db.boxes[boxId]; !ok {
-		return errors.New("No such box id")
+func (db *InMemoryDB) DeleteLink(id msg.Key) error {
+
+	_, err := db.GetBoxById(msg.Key{
+		Type: msg.Key_BOX,
+		Id:   id.BoxId,
+	})
+
+	if err != nil {
+		return err
 	}
+
 	db.linksLock.Lock()
 	defer db.linksLock.Unlock()
 	delete(db.links, id)

@@ -1,24 +1,26 @@
 package search
 
+import "github.com/sh3rp/databox/db"
+
 type InMemorySearchEngine struct {
-	TermIndex        map[string][]Key
-	LinkTagSignature map[Key][]byte
-	LinkTagList      map[Key][]string
+	TermIndex        map[string][]db.Key
+	LinkTagSignature map[db.Key][]byte
+	LinkTagList      map[db.Key][]string
 	searchTree       *Node
 }
 
 func NewInMemorySearchEngine() SearchEngine {
 	return &InMemorySearchEngine{
-		TermIndex:        make(map[string][]Key),
-		LinkTagSignature: make(map[Key][]byte),
-		LinkTagList:      make(map[Key][]string),
+		TermIndex:        make(map[string][]db.Key),
+		LinkTagSignature: make(map[db.Key][]byte),
+		LinkTagList:      make(map[db.Key][]string),
 		searchTree: &Node{
 			Nodes: make(map[byte]*Node),
 		},
 	}
 }
 
-func (se *InMemorySearchEngine) Index(id Key, inTags []string) error {
+func (se *InMemorySearchEngine) Index(id db.Key, inTags []string) error {
 	if len(inTags) == 0 {
 		return nil
 	}
@@ -44,7 +46,7 @@ func (se *InMemorySearchEngine) Index(id Key, inTags []string) error {
 	return nil
 }
 
-func (se *InMemorySearchEngine) UnIndex(id Key) error {
+func (se *InMemorySearchEngine) UnIndex(id db.Key) error {
 	for _, t := range se.LinkTagList[id] {
 		if _, ok := se.TermIndex[t]; ok {
 			left := 0
@@ -66,7 +68,7 @@ func (se *InMemorySearchEngine) UnIndex(id Key) error {
 	return nil
 }
 
-func (se *InMemorySearchEngine) Find(term string, limit, page int) []Key {
+func (se *InMemorySearchEngine) Find(term string, limit, page int) []db.Key {
 	termList := se.TermIndex[term]
 
 	if len(termList) <= limit {
@@ -76,6 +78,6 @@ func (se *InMemorySearchEngine) Find(term string, limit, page int) []Key {
 	}
 }
 
-func (se *InMemorySearchEngine) FindPartial(term string, limit, page int) []Key {
+func (se *InMemorySearchEngine) FindPartial(term string, limit, page int) []db.Key {
 	return nil
 }

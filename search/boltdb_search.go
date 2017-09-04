@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/boltdb/bolt"
+	"github.com/sh3rp/databox/db"
 )
 
 var TERM_BUCKET = "terms"
@@ -39,7 +40,7 @@ func NewBoltSearchEngine(dbfilename string) SearchEngine {
 	return &BoltSearchEngine{DB: boltDB}
 }
 
-func (s *BoltSearchEngine) Index(id Key, inTags []string) error {
+func (s *BoltSearchEngine) Index(id db.Key, inTags []string) error {
 
 	tags := NormalizeTags(inTags)
 
@@ -64,7 +65,7 @@ func (s *BoltSearchEngine) Index(id Key, inTags []string) error {
 	return nil
 }
 
-func (s *BoltSearchEngine) UnIndex(key Key) error {
+func (s *BoltSearchEngine) UnIndex(key db.Key) error {
 	terms := s.getTags(key)
 	for _, t := range terms {
 		s.removeTermMatch(t, key)
@@ -73,7 +74,7 @@ func (s *BoltSearchEngine) UnIndex(key Key) error {
 	return nil
 }
 
-func (s *BoltSearchEngine) Find(term string, count, page int) []Key {
+func (s *BoltSearchEngine) Find(term string, count, page int) []db.Key {
 	links := s.getTermMatches(term)
 
 	num := len(links)
@@ -85,17 +86,17 @@ func (s *BoltSearchEngine) Find(term string, count, page int) []Key {
 	}
 }
 
-func (s *BoltSearchEngine) FindPartial(term string, count, page int) []Key {
+func (s *BoltSearchEngine) FindPartial(term string, count, page int) []db.Key {
 	return nil
 }
 
-func (s *BoltSearchEngine) addTermMatch(term string, key Key) {
+func (s *BoltSearchEngine) addTermMatch(term string, key db.Key) {
 	matches := s.getTermMatches(term)
 	matches = append(matches, key)
 	s.saveTermMatches(term, matches)
 }
 
-func (s *BoltSearchEngine) removeTermMatch(term string, key Key) {
+func (s *BoltSearchEngine) removeTermMatch(term string, key db.Key) {
 	matches := s.getTermMatches(term)
 	if len(matches) > 0 {
 		var i int
@@ -110,9 +111,9 @@ func (s *BoltSearchEngine) removeTermMatch(term string, key Key) {
 	}
 }
 
-func (s *BoltSearchEngine) getTermMatches(term string) []Key {
+func (s *BoltSearchEngine) getTermMatches(term string) []db.Key {
 	var linksBytes []byte
-	var links []Key
+	var links []db.Key
 	var buf bytes.Buffer
 	s.DB.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(TERM_BUCKET))
@@ -124,7 +125,7 @@ func (s *BoltSearchEngine) getTermMatches(term string) []Key {
 	return links
 }
 
-func (s *BoltSearchEngine) saveTermMatches(term string, links []Key) {
+func (s *BoltSearchEngine) saveTermMatches(term string, links []db.Key) {
 	s.DB.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(TERM_BUCKET))
 		var buf bytes.Buffer
@@ -134,7 +135,7 @@ func (s *BoltSearchEngine) saveTermMatches(term string, links []Key) {
 	})
 }
 
-func (s *BoltSearchEngine) saveTags(id Key, tags []string) error {
+func (s *BoltSearchEngine) saveTags(id db.Key, tags []string) error {
 	return s.DB.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(LINK_BUCKET))
 		err := bucket.Put(id.GetId(), []byte(strings.Join(tags, ",")))
@@ -145,7 +146,7 @@ func (s *BoltSearchEngine) saveTags(id Key, tags []string) error {
 	})
 }
 
-func (s *BoltSearchEngine) getTags(id Key) []string {
+func (s *BoltSearchEngine) getTags(id db.Key) []string {
 	var tagsStr []byte
 	s.DB.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(LINK_BUCKET))
@@ -156,14 +157,14 @@ func (s *BoltSearchEngine) getTags(id Key) []string {
 	return strings.Split(string(tagsStr), ",")
 }
 
-func (s *BoltSearchEngine) saveTermSig(id Key, sig []byte) error {
+func (s *BoltSearchEngine) saveTermSig(id db.Key, sig []byte) error {
 	return s.DB.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(TAG_SIG_BUCKET))
 		return bucket.Put(id.GetId(), sig)
 	})
 }
 
-func (s *BoltSearchEngine) getTermSig(id Key) []byte {
+func (s *BoltSearchEngine) getTermSig(id db.Key) []byte {
 	var sig []byte
 
 	s.DB.View(func(tx *bolt.Tx) error {

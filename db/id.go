@@ -6,9 +6,23 @@ import (
 	"time"
 
 	"github.com/oklog/ulid"
+	"github.com/sh3rp/databox/msg"
 )
 
-type ID string
+func NewBoxKey() *msg.Key {
+	return &msg.Key{
+		Type: msg.Key_BOX,
+		Id:   GenerateID(),
+	}
+}
+
+func NewLinkKey(boxKey *msg.Key) *msg.Key {
+	return &msg.Key{
+		Type:  msg.Key_LINK,
+		Id:    GenerateID(),
+		BoxId: boxKey.Id,
+	}
+}
 
 func GenerateID() string {
 	t := time.Now()
