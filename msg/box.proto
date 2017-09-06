@@ -3,6 +3,8 @@ syntax = "proto3";
 package msg;
 
 service BoxService {
+    rpc Authenticate(AuthRequest) returns (AuthResponse) {}
+
     rpc GetVersion(None) returns (Version) {}
 
     rpc NewBox(Box) returns (Box) {}
@@ -16,6 +18,31 @@ service BoxService {
     rpc GetLinksByBoxId(Box) returns (Links) {}
 
     rpc SearchLinks(Search) returns (Links) {}
+}
+
+message AuthRequest {
+    string username = 1;
+    string password = 2;
+}
+
+message AuthResponse {
+    int32 code = 1;
+    string message = 2;
+    Token token = 3;
+}
+
+message Token {
+    string username = 1;
+    string tokenHash = 2;
+    int64 expirationTime = 3;
+}
+
+message Request {
+    Token token = 1;
+    oneof Objects {
+        Box box = 2;
+        Link link = 3;
+    }
 }
 
 message Key {
@@ -68,7 +95,7 @@ message Links {
 }
 
 message Note {
-    string id = 1;
+    Key id = 1;
     string title = 2;
     bytes text = 3;
     repeated string tags = 4;
