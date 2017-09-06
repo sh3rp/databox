@@ -47,6 +47,10 @@ func (s *GRPCServer) Start() {
 	grpcServer.Serve(listener)
 }
 
+func (s *GRPCServer) Authenticate(ctx context.Context, req *msg.AuthRequest) (*msg.AuthResponse, error) {
+	return nil, nil
+}
+
 func (s *GRPCServer) GetVersion(ctx context.Context, none *msg.None) (*msg.Version, error) {
 	return util.GetVersion(), nil
 }

@@ -31,11 +31,13 @@ func (a *InMemoryAuthenticator) Authenticate(user, pass string) bool {
 	return false
 }
 
+// AddUser - adds a user with a password
 func (a *InMemoryAuthenticator) AddUser(user, pass string) error {
 	a.users[user] = pass
 	return nil
 }
 
+// DeleteUser - deletes a user
 func (a *InMemoryAuthenticator) DeleteUser(user string) error {
 	if _, ok := a.users[user]; !ok {
 		return errors.New(ERR_AUTH_NO_USER)
