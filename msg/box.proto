@@ -5,19 +5,19 @@ package msg;
 service BoxService {
     rpc Authenticate(AuthRequest) returns (AuthResponse) {}
 
-    rpc GetVersion(None) returns (Version) {}
+    rpc GetVersion(Request) returns (Version) {}
 
-    rpc NewBox(Box) returns (Box) {}
-    rpc SaveBox(Box) returns (Box) {}
-    rpc GetBoxById(Box) returns (Box) {}
-    rpc GetBoxes(None) returns (Boxes) {}
+    rpc NewBox(Request) returns (Box) {}
+    rpc SaveBox(Request) returns (Box) {}
+    rpc GetBoxById(Request) returns (Box) {}
+    rpc GetBoxes(Request) returns (Boxes) {}
     
-    rpc NewLink(Link) returns (Link) {}
-    rpc SaveLink(Link) returns (Link) {}
-    rpc GetLinkById(Link) returns (Link) {}
-    rpc GetLinksByBoxId(Box) returns (Links) {}
+    rpc NewLink(Request) returns (Link) {}
+    rpc SaveLink(Request) returns (Link) {}
+    rpc GetLinkById(Request) returns (Link) {}
+    rpc GetLinksByBoxId(Request) returns (Links) {}
 
-    rpc SearchLinks(Search) returns (Links) {}
+    rpc SearchLinks(Request) returns (Links) {}
 }
 
 message AuthRequest {
@@ -42,6 +42,7 @@ message Request {
     oneof Objects {
         Box box = 2;
         Link link = 3;
+        Search search = 4;
     }
 }
 

@@ -42,7 +42,21 @@ var BoxNewCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		box, err := client.NewBox(context.Background(), &msg.Box{Name: boxName, Description: boxDescription})
+		token, err := config.ReadToken()
+
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+			return
+		}
+
+		req := &msg.Request{
+			Token: token,
+			Objects: &msg.Request_Box{
+				Box: &msg.Box{Name: boxName, Description: boxDescription},
+			},
+		}
+
+		box, err := client.NewBox(context.Background(), req)
 
 		if err != nil {
 			fmt.Printf("Error creating new box: %v\n", err)
@@ -72,7 +86,21 @@ var BoxListCmd = &cobra.Command{
 
 		client := msg.NewBoxServiceClient(conn)
 
-		boxes, err := client.GetBoxes(context.Background(), &msg.None{})
+		token, err := config.ReadToken()
+
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+			return
+		}
+
+		req := &msg.Request{
+			Token: token,
+			Objects: &msg.Request_Box{
+				Box: &msg.Box{Name: boxName, Description: boxDescription},
+			},
+		}
+
+		boxes, err := client.GetBoxes(context.Background(), req)
 
 		if err != nil {
 			fmt.Printf("Error getting boxes: %v\n", err)
@@ -96,7 +124,21 @@ var BoxSetCmd = &cobra.Command{
 
 		client := msg.NewBoxServiceClient(conn)
 
-		box, err := client.GetBoxById(context.Background(), &msg.Box{Id: &msg.Key{Id: boxId, Type: msg.Key_BOX}})
+		token, err := config.ReadToken()
+
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+			return
+		}
+
+		req := &msg.Request{
+			Token: token,
+			Objects: &msg.Request_Box{
+				Box: &msg.Box{Id: &msg.Key{Id: boxId, Type: msg.Key_BOX}},
+			},
+		}
+
+		box, err := client.GetBoxById(context.Background(), req)
 
 		if err != nil {
 			fmt.Printf("Error getting box: %v\n", err)

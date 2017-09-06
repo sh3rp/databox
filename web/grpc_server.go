@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -12,6 +13,7 @@ import (
 	"google.golang.org/grpc/credentials"
 
 	"github.com/rs/zerolog/log"
+	"github.com/sh3rp/databox/auth"
 	"github.com/sh3rp/databox/config"
 	"github.com/sh3rp/databox/db"
 	"github.com/sh3rp/databox/msg"
@@ -20,9 +22,11 @@ import (
 )
 
 type GRPCServer struct {
-	DB     db.BoxDB
-	Search search.SearchEngine
-	Port   int
+	Auth       auth.Authenticator
+	TokenStore auth.TokenStore
+	DB         db.BoxDB
+	Search     search.SearchEngine
+	Port       int
 }
 
 func (s *GRPCServer) Start() {
@@ -48,15 +52,39 @@ func (s *GRPCServer) Start() {
 }
 
 func (s *GRPCServer) Authenticate(ctx context.Context, req *msg.AuthRequest) (*msg.AuthResponse, error) {
-	return nil, nil
+	if s.Auth.Authenticate(req.Username, req.Password) {
+		token := s.TokenStore.GenerateToken(req.Username, time.Now().Add(20*time.Second).UnixNano())
+
+		return &msg.AuthResponse{
+			Code:    0,
+			Message: "ok",
+			Token:   token,
+		}, nil
+	}
+	return &msg.AuthResponse{
+		Code:    1,
+		Message: "User not authenticated",
+	}, nil
 }
 
-func (s *GRPCServer) GetVersion(ctx context.Context, none *msg.None) (*msg.Version, error) {
+func (s *GRPCServer) GetVersion(ctx context.Context, req *msg.Request) (*msg.Version, error) {
+	err := s.TokenStore.ValidateToken(req.Token)
+
+	if err != nil {
+		return nil, err
+	}
+
 	return util.GetVersion(), nil
 }
 
-func (s *GRPCServer) NewBox(ctx context.Context, box *msg.Box) (*msg.Box, error) {
-	newBox, err := s.DB.NewBox(box.Name, box.Description)
+func (s *GRPCServer) NewBox(ctx context.Context, req *msg.Request) (*msg.Box, error) {
+	err := s.TokenStore.ValidateToken(req.Token)
+
+	if err != nil {
+		return nil, err
+	}
+
+	newBox, err := s.DB.NewBox(req.GetBox().Name, req.GetBox().Description)
 
 	if err != nil {
 		return nil, err
@@ -65,19 +93,31 @@ func (s *GRPCServer) NewBox(ctx context.Context, box *msg.Box) (*msg.Box, error)
 	return newBox, nil
 }
 
-func (s *GRPCServer) SaveBox(ctx context.Context, box *msg.Box) (*msg.Box, error) {
-	err := s.DB.SaveBox(box)
+func (s *GRPCServer) SaveBox(ctx context.Context, req *msg.Request) (*msg.Box, error) {
+	err := s.TokenStore.ValidateToken(req.Token)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return box, err
+	err = s.DB.SaveBox(req.GetBox())
+
+	if err != nil {
+		return nil, err
+	}
+
+	return req.GetBox(), err
 }
 
-func (s *GRPCServer) GetBoxById(ctx context.Context, box *msg.Box) (*msg.Box, error) {
+func (s *GRPCServer) GetBoxById(ctx context.Context, req *msg.Request) (*msg.Box, error) {
 
-	box, err := s.DB.GetBoxById(*box.Id)
+	err := s.TokenStore.ValidateToken(req.Token)
+
+	if err != nil {
+		return nil, err
+	}
+
+	box, err := s.DB.GetBoxById(*req.GetBox().Id)
 
 	if err != nil {
 		return nil, err
@@ -86,7 +126,13 @@ func (s *GRPCServer) GetBoxById(ctx context.Context, box *msg.Box) (*msg.Box, er
 	return box, nil
 }
 
-func (s *GRPCServer) GetBoxes(ctx context.Context, none *msg.None) (*msg.Boxes, error) {
+func (s *GRPCServer) GetBoxes(ctx context.Context, req *msg.Request) (*msg.Boxes, error) {
+	err := s.TokenStore.ValidateToken(req.Token)
+
+	if err != nil {
+		return nil, err
+	}
+
 	boxes, err := s.DB.GetBoxes()
 
 	if err != nil {
@@ -96,17 +142,23 @@ func (s *GRPCServer) GetBoxes(ctx context.Context, none *msg.None) (*msg.Boxes, 
 	return &msg.Boxes{boxes}, nil
 }
 
-func (s *GRPCServer) NewLink(ctx context.Context, link *msg.Link) (*msg.Link, error) {
+func (s *GRPCServer) NewLink(ctx context.Context, req *msg.Request) (*msg.Link, error) {
+	err := s.TokenStore.ValidateToken(req.Token)
+
+	if err != nil {
+		return nil, err
+	}
+
 	box, err := s.DB.GetBoxById(msg.Key{
 		Type: msg.Key_BOX,
-		Id:   link.Id.BoxId,
+		Id:   req.GetLink().Id.BoxId,
 	})
 
 	if err != nil {
 		return nil, err
 	}
 
-	link, err = s.DB.NewLink(link.Name, link.Url, *box.Id)
+	link, err := s.DB.NewLink(req.GetLink().Name, req.GetLink().Url, *box.Id)
 
 	if err != nil {
 		return nil, err
@@ -116,37 +168,61 @@ func (s *GRPCServer) NewLink(ctx context.Context, link *msg.Link) (*msg.Link, er
 
 	return link, err
 }
-func (s *GRPCServer) SaveLink(ctx context.Context, link *msg.Link) (*msg.Link, error) {
-	_, err := s.DB.GetBoxById(msg.Key{
+func (s *GRPCServer) SaveLink(ctx context.Context, req *msg.Request) (*msg.Link, error) {
+	err := s.TokenStore.ValidateToken(req.Token)
+
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.DB.GetBoxById(msg.Key{
 		Type: msg.Key_BOX,
-		Id:   link.Id.BoxId,
+		Id:   req.GetLink().Id.BoxId,
 	})
 
 	if err != nil {
 		return nil, err
 	}
 
-	err = s.DB.SaveLink(link)
+	err = s.DB.SaveLink(req.GetLink())
 
 	if err != nil {
 		return nil, err
 	}
 
-	err = s.Search.Index(*link.Id, link.Tags)
+	err = s.Search.Index(*req.GetLink().Id, req.GetLink().Tags)
 
-	return link, err
+	return req.GetLink(), err
 }
-func (s *GRPCServer) GetLinkById(ctx context.Context, link *msg.Link) (*msg.Link, error) {
-	return s.DB.GetLinkById(*link.Id)
+func (s *GRPCServer) GetLinkById(ctx context.Context, req *msg.Request) (*msg.Link, error) {
+	err := s.TokenStore.ValidateToken(req.Token)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return s.DB.GetLinkById(*req.GetLink().Id)
 }
-func (s *GRPCServer) GetLinksByBoxId(ctx context.Context, box *msg.Box) (*msg.Links, error) {
-	links, err := s.DB.GetLinksByBoxId(*box.Id)
+func (s *GRPCServer) GetLinksByBoxId(ctx context.Context, req *msg.Request) (*msg.Links, error) {
+	err := s.TokenStore.ValidateToken(req.Token)
+
+	if err != nil {
+		return nil, err
+	}
+
+	links, err := s.DB.GetLinksByBoxId(*req.GetBox().Id)
 
 	return &msg.Links{links}, err
 }
-func (s *GRPCServer) SearchLinks(ctx context.Context, search *msg.Search) (*msg.Links, error) {
+func (s *GRPCServer) SearchLinks(ctx context.Context, req *msg.Request) (*msg.Links, error) {
+	err := s.TokenStore.ValidateToken(req.Token)
+
+	if err != nil {
+		return nil, err
+	}
+
 	var links []*msg.Link
-	linkIds := s.Search.Find(search.Term, int(search.Count), int(search.Page))
+	linkIds := s.Search.Find(req.GetSearch().Term, int(req.GetSearch().Count), int(req.GetSearch().Page))
 
 	for _, id := range linkIds {
 		link, _ := s.DB.GetLinkById(id)

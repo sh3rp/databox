@@ -17,6 +17,8 @@ var RootCmd = &cobra.Command{
 }
 
 func init() {
+	AuthCmd.Flags().StringVarP(&username, "username", "u", "", "User name")
+
 	BoxNewCmd.Flags().StringVarP(&boxName, "name", "n", "", "Box name")
 	BoxNewCmd.Flags().StringVarP(&boxDescription, "description", "d", "", "Box description")
 	BoxNewCmd.Flags().BoolVarP(&setBoxEnv, "setEnv", "e", false, "Set newly created box to current working box")
@@ -46,7 +48,7 @@ func init() {
 	LinkSearchCmd.Flags().BoolVarP(&searchLoadLinks, "load", "l", false, "Load the links returned in a browser")
 
 	LinkCmd.AddCommand(LinkAddCmd, LinkGetLinksCmd, LinkLoadCmd, LinkTagCmd, LinkSearchCmd)
-	RootCmd.AddCommand(BoxCmd, LinkCmd, ConfigCmd)
+	RootCmd.AddCommand(AuthCmd, BoxCmd, LinkCmd, ConfigCmd)
 }
 
 func GetHost() string {

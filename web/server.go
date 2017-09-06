@@ -2,6 +2,7 @@ package web
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/sh3rp/databox/auth"
 	"github.com/sh3rp/databox/db"
 	"github.com/sh3rp/databox/search"
 )
@@ -18,7 +19,7 @@ type Server struct {
 func NewServer(httpPort, grpcPort int, db db.BoxDB, search search.SearchEngine) *Server {
 	return &Server{
 		HttpRouter: &HttpServer{DB: db, Search: search, HttpRouter: gin.Default(), Port: httpPort},
-		GRPCRouter: &GRPCServer{DB: db, Search: search, Port: grpcPort},
+		GRPCRouter: &GRPCServer{Auth: auth.NewInMemoryAuthenticator(), TokenStore: auth.NewInMemoryTokenStore(), DB: db, Search: search, Port: grpcPort},
 		DB:         db,
 		Search:     search,
 		HttpPort:   httpPort,

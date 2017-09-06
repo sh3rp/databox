@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"os/user"
+
+	"github.com/sh3rp/databox/msg"
 )
 
 var CONFIG_DIR = ".bawx"
@@ -112,4 +114,34 @@ func (cfg *ClientConfig) getConfigFile() (*os.File, error) {
 	configFile, err := os.OpenFile(usr.HomeDir+"/"+CONFIG_DIR+"/"+CONFIG_FILE, os.O_TRUNC|os.O_CREATE|os.O_RDWR, 0)
 
 	return configFile, nil
+}
+
+func WriteToken(token *msg.Token) error {
+	usr, err := user.Current()
+
+	if err != nil {
+		return err
+	}
+
+	file, err := os.Open(usr.HomeDir + "/token.json")
+
+	err = json.NewEncoder(file).Encode(token)
+
+	return err
+}
+
+func ReadToken() (*msg.Token, error) {
+	usr, err := user.Current()
+
+	if err != nil {
+		return nil, err
+	}
+
+	file, err := os.Open(usr.HomeDir + "/token.json")
+
+	var token *msg.Token
+
+	json.NewDecoder(file).Decode(token)
+
+	return token, nil
 }

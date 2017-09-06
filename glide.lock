@@ -1,5 +1,5 @@
 hash: 2c7a734d569912711eeb1205ef1cfe2ecaff83237df2f43adfd34f26cebe5c76
-updated: 2017-09-04T17:08:24.82583082-04:00
+updated: 2017-09-06T19:20:46.524861394-04:00
 imports:
 - name: github.com/boltdb/bolt
   version: 2f1ce7a837dcb8da3ec595b1dac9d0632f0f99e8
@@ -55,6 +55,10 @@ imports:
   - codec
 - name: github.com/yhat/scrape
   version: 24b7890b0945459dbf91743e4d2ac5d75a51fee2
+- name: golang.org/x/crypto
+  version: 81e90905daefcd6fd217b62423c0908922eadb30
+  subpackages:
+  - ssh/terminal
 - name: golang.org/x/net
   version: 1c05540f6879653db88113bc4a2b70aec4bd491f
   subpackages:
@@ -71,6 +75,7 @@ imports:
   version: 7ddbeae9ae08c6a06a59597f0c9edbc5ff2444ce
   subpackages:
   - unix
+  - windows
 - name: golang.org/x/text
   version: e56139fd9c5bc7244c76116c68e500765bb6db6b
   subpackages:

@@ -78,7 +78,21 @@ var LinkAddCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		link, err := client.NewLink(context.Background(), &msg.Link{Id: &msg.Key{BoxId: getBoxId()}, Name: linkName, Url: linkUrl})
+		token, err := config.ReadToken()
+
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+			return
+		}
+
+		req := &msg.Request{
+			Token: token,
+			Objects: &msg.Request_Link{
+				Link: &msg.Link{Id: &msg.Key{BoxId: getBoxId()}, Name: linkName, Url: linkUrl},
+			},
+		}
+
+		link, err := client.NewLink(context.Background(), req)
 
 		if err != nil {
 			fmt.Printf("Error creating link: %v\n", err)
@@ -113,7 +127,21 @@ var LinkGetLinksCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		links, err := client.GetLinksByBoxId(context.Background(), &msg.Box{Id: &msg.Key{Id: getBoxId(), Type: msg.Key_BOX}})
+		token, err := config.ReadToken()
+
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+			return
+		}
+
+		req := &msg.Request{
+			Token: token,
+			Objects: &msg.Request_Box{
+				Box: &msg.Box{Id: &msg.Key{Id: getBoxId(), Type: msg.Key_BOX}},
+			},
+		}
+
+		links, err := client.GetLinksByBoxId(context.Background(), req)
 
 		if err != nil {
 			fmt.Printf("Error getting links: %v\n", err)
@@ -137,7 +165,21 @@ var LinkLoadCmd = &cobra.Command{
 
 		client := msg.NewBoxServiceClient(conn)
 
-		link, err := client.GetLinkById(context.Background(), &msg.Link{Id: &msg.Key{Id: linkId, BoxId: getBoxId(), Type: msg.Key_LINK}})
+		token, err := config.ReadToken()
+
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+			return
+		}
+
+		req := &msg.Request{
+			Token: token,
+			Objects: &msg.Request_Link{
+				Link: &msg.Link{Id: &msg.Key{Id: linkId, BoxId: getBoxId(), Type: msg.Key_LINK}},
+			},
+		}
+
+		link, err := client.GetLinkById(context.Background(), req)
 
 		if err != nil {
 			fmt.Printf("Error getting link: %v\n", err)
@@ -160,7 +202,22 @@ var LinkTagCmd = &cobra.Command{
 		defer conn.Close()
 
 		client := msg.NewBoxServiceClient(conn)
-		link, err := client.GetLinkById(context.Background(), &msg.Link{Id: &msg.Key{Id: linkId, BoxId: getBoxId(), Type: msg.Key_LINK}})
+
+		token, err := config.ReadToken()
+
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+			return
+		}
+
+		req := &msg.Request{
+			Token: token,
+			Objects: &msg.Request_Link{
+				Link: &msg.Link{Id: &msg.Key{Id: linkId, BoxId: getBoxId(), Type: msg.Key_LINK}},
+			},
+		}
+
+		link, err := client.GetLinkById(context.Background(), req)
 
 		if err != nil {
 			fmt.Printf("Error getting link: %v\n", err)
@@ -181,7 +238,14 @@ var LinkTagCmd = &cobra.Command{
 
 		link.Tags = append(link.Tags, tags...)
 
-		link, err = client.SaveLink(context.Background(), link)
+		req = &msg.Request{
+			Token: token,
+			Objects: &msg.Request_Link{
+				Link: link,
+			},
+		}
+
+		link, err = client.SaveLink(context.Background(), req)
 
 		if err != nil {
 			fmt.Printf("Error saving tags: %v\n", err)
@@ -204,11 +268,26 @@ var LinkSearchCmd = &cobra.Command{
 		defer conn.Close()
 
 		client := msg.NewBoxServiceClient(conn)
-		links, err := client.SearchLinks(context.Background(), &msg.Search{
-			Term:  searchTerm,
-			Count: int32(searchCount),
-			Page:  int32(searchPage),
-		})
+
+		token, err := config.ReadToken()
+
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+			return
+		}
+
+		req := &msg.Request{
+			Token: token,
+			Objects: &msg.Request_Search{
+				Search: &msg.Search{
+					Term:  searchTerm,
+					Count: int32(searchCount),
+					Page:  int32(searchPage),
+				},
+			},
+		}
+
+		links, err := client.SearchLinks(context.Background(), req)
 		if err != nil {
 			fmt.Printf("Error searching tags: %v\n", err)
 		} else {
