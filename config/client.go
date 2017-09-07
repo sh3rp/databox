@@ -120,12 +120,25 @@ func WriteToken(token *msg.Token) error {
 	usr, err := user.Current()
 
 	if err != nil {
+		fmt.Printf("Error getting user: %v\n", err)
 		return err
 	}
 
-	file, err := os.Open(usr.HomeDir + "/token.json")
+	file, err := os.OpenFile(usr.HomeDir+"/"+CONFIG_DIR+"/token.json", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0700)
+
+	if err != nil {
+		fmt.Printf("Error opening file: %v\n", err)
+		return err
+	}
 
 	err = json.NewEncoder(file).Encode(token)
+
+	if err != nil {
+		fmt.Printf("Error writing json: %v\n", err)
+		return err
+	}
+
+	file.Close()
 
 	return err
 }
@@ -137,11 +150,21 @@ func ReadToken() (*msg.Token, error) {
 		return nil, err
 	}
 
-	file, err := os.Open(usr.HomeDir + "/token.json")
+	file, err := os.Open(usr.HomeDir + "/" + CONFIG_DIR + "/token.json")
 
-	var token *msg.Token
+	if err != nil {
+		return nil, err
+	}
 
-	json.NewDecoder(file).Decode(token)
+	token := &msg.Token{}
+
+	err = json.NewDecoder(file).Decode(token)
+
+	if err != nil {
+		return nil, err
+	}
+
+	file.Close()
 
 	return token, nil
 }

@@ -2,10 +2,12 @@ package auth
 
 import (
 	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"math/rand"
 	"time"
 
+	"github.com/rs/zerolog/log"
 	"github.com/sh3rp/databox/msg"
 )
 
@@ -68,7 +70,7 @@ func (ts *InMemoryTokenStore) GenerateToken(user string, expiration int64) *msg.
 
 	token := &msg.Token{
 		Username:       user,
-		TokenHash:      string(hash),
+		TokenHash:      hex.EncodeToString(hash),
 		ExpirationTime: expiration,
 	}
 
@@ -77,6 +79,10 @@ func (ts *InMemoryTokenStore) GenerateToken(user string, expiration int64) *msg.
 }
 
 func (ts *InMemoryTokenStore) ValidateToken(token *msg.Token) error {
+	if token == nil {
+		log.Error().Msgf("ValidateToken: no token passed")
+		return errors.New("No token passed")
+	}
 	if _, ok := ts.tokens[token.Username]; ok {
 		if ts.tokens[token.Username].ExpirationTime < time.Now().UnixNano() {
 			delete(ts.tokens, token.Username)

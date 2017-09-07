@@ -17,9 +17,12 @@ type Server struct {
 }
 
 func NewServer(httpPort, grpcPort int, db db.BoxDB, search search.SearchEngine) *Server {
+	// temporary authenticator
+	a := auth.NewInMemoryAuthenticator()
+	a.AddUser("admin", "password")
 	return &Server{
 		HttpRouter: &HttpServer{DB: db, Search: search, HttpRouter: gin.Default(), Port: httpPort},
-		GRPCRouter: &GRPCServer{Auth: auth.NewInMemoryAuthenticator(), TokenStore: auth.NewInMemoryTokenStore(), DB: db, Search: search, Port: grpcPort},
+		GRPCRouter: &GRPCServer{Auth: a, TokenStore: auth.NewInMemoryTokenStore(), DB: db, Search: search, Port: grpcPort},
 		DB:         db,
 		Search:     search,
 		HttpPort:   httpPort,

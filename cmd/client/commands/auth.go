@@ -21,9 +21,6 @@ var AuthCmd = &cobra.Command{
 
 		fmt.Print("Password: ")
 		bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
-		if err == nil {
-			fmt.Println("\nPassword typed: " + string(bytePassword))
-		}
 		password := string(bytePassword)
 
 		conn, err := Dial()
@@ -42,7 +39,12 @@ var AuthCmd = &cobra.Command{
 		})
 
 		if res.Code == 0 {
-			config.WriteToken(res.Token)
+			err = config.WriteToken(res.Token)
+			if err != nil {
+				fmt.Printf("Error: %v\n", err)
+			} else {
+				fmt.Printf("Wrote token\n")
+			}
 		} else {
 			fmt.Printf("Error: %v\n", res.Message)
 		}

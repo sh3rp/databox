@@ -53,7 +53,7 @@ func (s *GRPCServer) Start() {
 
 func (s *GRPCServer) Authenticate(ctx context.Context, req *msg.AuthRequest) (*msg.AuthResponse, error) {
 	if s.Auth.Authenticate(req.Username, req.Password) {
-		token := s.TokenStore.GenerateToken(req.Username, time.Now().Add(20*time.Second).UnixNano())
+		token := s.TokenStore.GenerateToken(req.Username, time.Now().Add(20*time.Minute).UnixNano())
 
 		return &msg.AuthResponse{
 			Code:    0,
@@ -81,12 +81,14 @@ func (s *GRPCServer) NewBox(ctx context.Context, req *msg.Request) (*msg.Box, er
 	err := s.TokenStore.ValidateToken(req.Token)
 
 	if err != nil {
+		log.Error().Msgf("NewBox: error validating token: %v", err)
 		return nil, err
 	}
 
 	newBox, err := s.DB.NewBox(req.GetBox().Name, req.GetBox().Description)
 
 	if err != nil {
+		log.Error().Msgf("NewBox: error creating box: %v", err)
 		return nil, err
 	}
 
