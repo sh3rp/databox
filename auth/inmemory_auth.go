@@ -8,25 +8,27 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
+	"github.com/sh3rp/databox/db"
 	"github.com/sh3rp/databox/msg"
+	"github.com/sh3rp/databox/util"
 )
 
 // InMemoryAuthenticator - base authenticator struct for Authenticator
 type InMemoryAuthenticator struct {
-	users map[string]string
+	users map[string]*User
 }
 
 // NewInMemoryAuthenticator - ctor
 func NewInMemoryAuthenticator() Authenticator {
 	return &InMemoryAuthenticator{
-		users: make(map[string]string),
+		users: make(map[string]*User),
 	}
 }
 
 // Authenticate - implementation for Authenticate contract
-func (a *InMemoryAuthenticator) Authenticate(user, pass string) bool {
-	if _, ok := a.users[user]; ok {
-		if pass == a.users[user] {
+func (a *InMemoryAuthenticator) Authenticate(username, pass string) bool {
+	if user, ok := a.users[username]; ok {
+		if pass == user.Password {
 			return true
 		}
 	}
@@ -35,17 +37,29 @@ func (a *InMemoryAuthenticator) Authenticate(user, pass string) bool {
 
 // AddUser - adds a user with a password
 func (a *InMemoryAuthenticator) AddUser(user, pass string) error {
-	a.users[user] = pass
+	a.users[user] = &User{
+		Username:      user,
+		Password:      pass,
+		EncryptionKey: []byte(util.GetPassHash(db.GenerateID())),
+	}
 	return nil
 }
 
 // DeleteUser - deletes a user
-func (a *InMemoryAuthenticator) DeleteUser(user string) error {
-	if _, ok := a.users[user]; !ok {
+func (a *InMemoryAuthenticator) DeleteUser(username string) error {
+	if _, ok := a.users[username]; !ok {
 		return errors.New(ERR_AUTH_NO_USER)
 	}
-	delete(a.users, user)
+	delete(a.users, username)
 	return nil
+}
+
+// GetEncryptionKey returns the encryption key for this username
+func (a *InMemoryAuthenticator) GetEncryptionKey(username string) ([]byte, error) {
+	if _, ok := a.users[username]; !ok {
+		return nil, errors.New(ERR_AUTH_NO_USER)
+	}
+	return a.users[username].EncryptionKey, nil
 }
 
 type InMemoryTokenStore struct {

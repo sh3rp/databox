@@ -11,9 +11,16 @@ type Authenticator interface {
 	Authenticate(string, string) bool
 	AddUser(string, string) error
 	DeleteUser(string) error
+	GetEncryptionKey(string) ([]byte, error)
 }
 
 type TokenStore interface {
 	GenerateToken(string, int64) *msg.Token
 	ValidateToken(*msg.Token) error
+}
+
+type User struct {
+	Username      string
+	Password      string
+	EncryptionKey []byte
 }

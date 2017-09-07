@@ -25,14 +25,10 @@ func getBoltDBAuth() (Authenticator, TokenStore, string) {
 	id := db.GenerateID()
 	db, _ := bolt.Open("/tmp/bolt"+id, 0600, nil)
 
-	auth := &BoltDBAuthenticator{
+	a := &BoltDBAuthenticator{
 		DB: db,
 	}
-
-	auth.DB.Update(func(tx *bolt.Tx) error {
-		b, _ := tx.CreateBucketIfNotExists([]byte("user"))
-		return b.Put([]byte(TEST_USER), []byte(TEST_PASSWORD))
-	})
+	a.AddUser(TEST_USER, TEST_PASSWORD)
 	tokenStore := NewInMemoryTokenStore()
-	return auth, tokenStore, id
+	return a, tokenStore, id
 }

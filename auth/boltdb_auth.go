@@ -1,10 +1,14 @@
 package auth
 
 import (
+	"bytes"
+	"encoding/gob"
 	"errors"
 
 	"github.com/boltdb/bolt"
 	"github.com/rs/zerolog/log"
+	d "github.com/sh3rp/databox/db"
+	"github.com/sh3rp/databox/util"
 )
 
 var BOLT_USER_BUCKET = "user"
@@ -34,47 +38,77 @@ func NewBoltDBAuth(dbpath string) *BoltDBAuthenticator {
 	}
 }
 
-func (db *BoltDBAuthenticator) Authenticate(user, pass string) bool {
-	persistedPass, err := db.getUser(user)
+func (db *BoltDBAuthenticator) Authenticate(username, pass string) bool {
+	user, err := db.getUser(username)
 	if err != nil {
 		log.Error().Msgf("Authenticate: error authenticating: %v", err)
 		return false
 	}
-	return persistedPass == pass
+	return user.Password == pass
 }
 
-func (db *BoltDBAuthenticator) AddUser(user, pass string) error {
-	return db.saveUser(user, pass)
+func (db *BoltDBAuthenticator) AddUser(username, pass string) error {
+	user := &User{
+		Username:      username,
+		Password:      pass,
+		EncryptionKey: []byte(util.GetPassHash(d.GenerateID())),
+	}
+	return db.saveUser(user)
 }
 
-func (db *BoltDBAuthenticator) DeleteUser(user string) error {
-	return db.saveUser(user, "")
+func (db *BoltDBAuthenticator) DeleteUser(username string) error {
+	return db.deleteUser(username)
 }
 
-func (db *BoltDBAuthenticator) saveUser(user, pass string) error {
-	err := db.DB.Update(func(tx *bolt.Tx) error {
+func (db *BoltDBAuthenticator) GetEncryptionKey(username string) ([]byte, error) {
+	user, err := db.getUser(username)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return user.EncryptionKey, nil
+}
+
+func (db *BoltDBAuthenticator) saveUser(user *User) error {
+	var buf bytes.Buffer
+	err := gob.NewEncoder(&buf).Encode(user)
+
+	if err != nil {
+		return err
+	}
+
+	err = db.DB.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BOLT_USER_BUCKET))
-		if pass == "" {
-			return bucket.Delete([]byte(user))
-		} else {
-			return bucket.Put([]byte(user), []byte(pass))
-		}
+		return bucket.Put([]byte(user.Username), buf.Bytes())
 	})
 	return err
 }
 
-func (db *BoltDBAuthenticator) getUser(user string) (string, error) {
-	var password string
+func (db *BoltDBAuthenticator) deleteUser(username string) error {
+	err := db.DB.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(BOLT_USER_BUCKET))
+		return bucket.Delete([]byte(username))
+	})
+	return err
+}
+
+func (db *BoltDBAuthenticator) getUser(username string) (*User, error) {
+	var buf bytes.Buffer
+	var data []byte
 
 	err := db.DB.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BOLT_USER_BUCKET))
-		data := bucket.Get([]byte(user))
+		data = bucket.Get([]byte(username))
 		if len(data) == 0 {
 			return errors.New(ERR_AUTH_NO_USER)
 		}
-		password = string(data)
-		return nil
+		_, err := buf.Write(data)
+		return err
 	})
 
-	return password, err
+	user := &User{}
+	err = gob.NewDecoder(&buf).Decode(user)
+
+	return user, err
 }

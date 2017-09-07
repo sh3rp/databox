@@ -14,9 +14,12 @@ func TestInMemoryAuth(t *testing.T) {
 
 func getInMemoryAuth() (Authenticator, TokenStore, string) {
 	authenticator := &InMemoryAuthenticator{
-		users: make(map[string]string),
+		users: make(map[string]*User),
 	}
-	authenticator.users[TEST_USER] = TEST_PASSWORD
+	authenticator.users[TEST_USER] = &User{
+		Username: TEST_USER,
+		Password: TEST_PASSWORD,
+	}
 	tokenStore := NewInMemoryTokenStore()
 	return authenticator, tokenStore, ""
 }
