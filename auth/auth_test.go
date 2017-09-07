@@ -61,12 +61,6 @@ func (suite *AuthTestSuite) TestDeleteUserSuccess() {
 	assert.Nil(suite.T(), err)
 }
 
-func (suite *AuthTestSuite) TestDeleteUserFailure() {
-	err := suite.Auth.DeleteUser(TEST_USER + "bad")
-	assert.NotNil(suite.T(), err)
-	assert.Equal(suite.T(), ERR_AUTH_NO_USER, err.Error())
-}
-
 func (suite *AuthTestSuite) TestGenerateToken() {
 	token := suite.TokenStore.GenerateToken(TEST_USER, int64(time.Now().Add(1*time.Minute).UnixNano()))
 
