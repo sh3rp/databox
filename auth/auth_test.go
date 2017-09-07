@@ -61,14 +61,6 @@ func (suite *AuthTestSuite) TestDeleteUserSuccess() {
 	assert.Nil(suite.T(), err)
 }
 
-func (suite *AuthTestSuite) TestUserEncryptionKey() {
-	err := suite.Auth.AddUser(TEST_USER+"_e", TEST_PASSWORD+"_e")
-	assert.Nil(suite.T(), err)
-	key, err := suite.Auth.GetEncryptionKey(TEST_USER + "_e")
-	assert.Nil(suite.T(), err)
-	assert.NotNil(suite.T(), key)
-}
-
 func (suite *AuthTestSuite) TestGenerateToken() {
 	token := suite.TokenStore.GenerateToken(TEST_USER, int64(time.Now().Add(1*time.Minute).UnixNano()))
 

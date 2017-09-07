@@ -26,7 +26,7 @@ func NewInMemoryDB() BoxDB {
 	return &db
 }
 
-func (db *InMemoryDB) NewBox(name string, description string) (*msg.Box, error) {
+func (db *InMemoryDB) NewBox(name string, description string, password []byte) (*msg.Box, error) {
 	if name == "" {
 		return nil, errors.New("Name must not be empty")
 	}

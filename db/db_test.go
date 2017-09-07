@@ -32,20 +32,20 @@ func (suite *DBTestSuite) TestNewBox() {
 	name := "test"
 	descr := "test description"
 
-	box, err := suite.DB.NewBox(name, descr)
+	box, err := suite.DB.NewBox(name, descr, []byte("password"))
 
 	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), box.Name, name)
 	assert.Equal(suite.T(), box.Description, descr)
 
-	box, err = suite.DB.NewBox(name, descr)
+	box, err = suite.DB.NewBox(name, descr, []byte("password"))
 
 	assert.Nil(suite.T(), err)
 
-	box, err = suite.DB.NewBox("", descr)
+	box, err = suite.DB.NewBox("", descr, []byte("password"))
 	assert.NotNil(suite.T(), err)
 
-	box, err = suite.DB.NewBox(name, "")
+	box, err = suite.DB.NewBox(name, "", []byte("password"))
 	assert.NotNil(suite.T(), err)
 }
 
@@ -53,7 +53,7 @@ func (suite *DBTestSuite) TestSaveBox() {
 	name := "test"
 	descr := "test description"
 
-	box, err := suite.DB.NewBox(name, descr)
+	box, err := suite.DB.NewBox(name, descr, []byte("password"))
 	box.Name = "new name"
 	err = suite.DB.SaveBox(box)
 
@@ -75,7 +75,7 @@ func (suite *DBTestSuite) TestGetBoxById() {
 	name := "test"
 	descr := "test description"
 
-	box, err := suite.DB.NewBox(name, descr)
+	box, err := suite.DB.NewBox(name, descr, []byte("password"))
 	assert.Nil(suite.T(), err)
 
 	newBox, err := suite.DB.GetBoxById(*box.Id)
@@ -91,7 +91,7 @@ func (suite *DBTestSuite) TestGetBoxes() {
 	boxes := make(map[msg.Key]*msg.Box)
 
 	for i := 0; i < 10; i++ {
-		b, err := suite.DB.NewBox(name+fmt.Sprintf("%d", i), descr+fmt.Sprintf("%d", i))
+		b, err := suite.DB.NewBox(name+fmt.Sprintf("%d", i), descr+fmt.Sprintf("%d", i), []byte("password"))
 		assert.Nil(suite.T(), err)
 		boxes[*b.Id] = b
 	}
@@ -110,7 +110,7 @@ func (suite *DBTestSuite) TestDeleteBox() {
 	name := "test"
 	descr := "test description"
 
-	box, _ := suite.DB.NewBox(name, descr)
+	box, _ := suite.DB.NewBox(name, descr, []byte("password"))
 	err := suite.DB.DeleteBox(*box.Id)
 
 	assert.Nil(suite.T(), err)
@@ -121,7 +121,7 @@ func (suite *DBTestSuite) TestDeleteBox() {
 }
 
 func (suite *DBTestSuite) TestNewLink() {
-	box, _ := suite.DB.NewBox("test", "test description")
+	box, _ := suite.DB.NewBox("test", "test description", []byte("password"))
 
 	link, err := suite.DB.NewLink("testlink", "http://www.cnn.com", *box.Id)
 	assert.Nil(suite.T(), err)
@@ -136,7 +136,7 @@ func (suite *DBTestSuite) TestNewLink() {
 }
 
 func (suite *DBTestSuite) TestSaveLink() {
-	box, _ := suite.DB.NewBox("test", "test description")
+	box, _ := suite.DB.NewBox("test", "test description", []byte("password"))
 	link, _ := suite.DB.NewLink("testlink", "http://www.cnn.com", *box.Id)
 	link.Url = "http://www.msnbc.com"
 	err := suite.DB.SaveLink(link)
@@ -144,7 +144,7 @@ func (suite *DBTestSuite) TestSaveLink() {
 }
 
 func (suite *DBTestSuite) TestGetLinkById() {
-	box, _ := suite.DB.NewBox("test", "test description")
+	box, _ := suite.DB.NewBox("test", "test description", []byte("password"))
 	link, _ := suite.DB.NewLink("testlink", "http://www.cnn.com", *box.Id)
 
 	newLink, err := suite.DB.GetLinkById(*link.Id)
@@ -155,8 +155,8 @@ func (suite *DBTestSuite) TestGetLinkById() {
 }
 
 func (suite *DBTestSuite) TestGetLinksByBoxId() {
-	box1, _ := suite.DB.NewBox("test", "test description")
-	box2, _ := suite.DB.NewBox("test2", "blah blah")
+	box1, _ := suite.DB.NewBox("test", "test description", []byte("password"))
+	box2, _ := suite.DB.NewBox("test2", "blah blah", []byte("password"))
 
 	for i := 0; i < 10; i++ {
 		suite.DB.NewLink(fmt.Sprintf("test%d", i), "http://www.cnn.com", *box1.Id)

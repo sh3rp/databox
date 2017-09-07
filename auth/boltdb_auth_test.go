@@ -25,6 +25,11 @@ func getBoltDBAuth() (Authenticator, TokenStore, string) {
 	id := db.GenerateID()
 	db, _ := bolt.Open("/tmp/bolt"+id, 0600, nil)
 
+	db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucketIfNotExists([]byte(BOLT_USER_BUCKET))
+		return err
+	})
+
 	a := &BoltDBAuthenticator{
 		DB: db,
 	}

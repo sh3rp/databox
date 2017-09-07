@@ -1,7 +1,9 @@
 package web
 
 import (
+	"bytes"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -16,8 +18,10 @@ import (
 	"github.com/sh3rp/databox/auth"
 	"github.com/sh3rp/databox/config"
 	"github.com/sh3rp/databox/db"
+	"github.com/sh3rp/databox/logger"
 	"github.com/sh3rp/databox/msg"
 	"github.com/sh3rp/databox/search"
+	"github.com/sh3rp/databox/secure"
 	"github.com/sh3rp/databox/util"
 )
 
@@ -27,6 +31,7 @@ type GRPCServer struct {
 	DB         db.BoxDB
 	Search     search.SearchEngine
 	Port       int
+	Filter     *secure.SecureFilter
 }
 
 func (s *GRPCServer) Start() {
@@ -79,18 +84,37 @@ func (s *GRPCServer) GetVersion(ctx context.Context, req *msg.Request) (*msg.Ver
 	return util.GetVersion(), nil
 }
 
-func (s *GRPCServer) NewBox(ctx context.Context, req *msg.Request) (*msg.Box, error) {
+func (s *GRPCServer) UnlockBox(ctx context.Context, req *msg.UnlockRequest) (*msg.Box, error) {
 	err := s.TokenStore.ValidateToken(req.Token)
 
 	if err != nil {
-		log.Error().Msgf("NewBox: error validating token: %v", err)
+		logger.E(err)
 		return nil, err
 	}
 
-	newBox, err := s.DB.NewBox(req.GetBox().Name, req.GetBox().Description)
+	box, err := s.DB.GetBoxById(*req.Box.Id)
+
+	if bytes.Equal(secure.GetSignature([]byte(req.BoxPassword), box), box.EncryptedSignature) {
+		s.Filter.UnlockBox(req.Token, box, []byte(req.BoxPassword))
+	} else {
+		return nil, errors.New("Incorrect box password")
+	}
+
+	return box, nil
+}
+
+func (s *GRPCServer) NewBox(ctx context.Context, req *msg.UnlockRequest) (*msg.Box, error) {
+	err := s.TokenStore.ValidateToken(req.Token)
 
 	if err != nil {
-		log.Error().Msgf("NewBox: error creating box: %v", err)
+		logger.E(err)
+		return nil, err
+	}
+
+	newBox, err := s.DB.NewBox(req.Box.Name, req.Box.Description, []byte(req.BoxPassword))
+
+	if err != nil {
+		logger.E(err)
 		return nil, err
 	}
 
@@ -101,12 +125,14 @@ func (s *GRPCServer) SaveBox(ctx context.Context, req *msg.Request) (*msg.Box, e
 	err := s.TokenStore.ValidateToken(req.Token)
 
 	if err != nil {
+		logger.E(err)
 		return nil, err
 	}
 
 	err = s.DB.SaveBox(req.GetBox())
 
 	if err != nil {
+		logger.E(err)
 		return nil, err
 	}
 
@@ -118,12 +144,14 @@ func (s *GRPCServer) GetBoxById(ctx context.Context, req *msg.Request) (*msg.Box
 	err := s.TokenStore.ValidateToken(req.Token)
 
 	if err != nil {
+		logger.E(err)
 		return nil, err
 	}
 
 	box, err := s.DB.GetBoxById(*req.GetBox().Id)
 
 	if err != nil {
+		logger.E(err)
 		return nil, err
 	}
 
@@ -134,12 +162,14 @@ func (s *GRPCServer) GetBoxes(ctx context.Context, req *msg.Request) (*msg.Boxes
 	err := s.TokenStore.ValidateToken(req.Token)
 
 	if err != nil {
+		logger.E(err)
 		return nil, err
 	}
 
 	boxes, err := s.DB.GetBoxes()
 
 	if err != nil {
+		logger.E(err)
 		return nil, err
 	}
 
@@ -150,6 +180,7 @@ func (s *GRPCServer) NewLink(ctx context.Context, req *msg.Request) (*msg.Link, 
 	err := s.TokenStore.ValidateToken(req.Token)
 
 	if err != nil {
+		logger.E(err)
 		return nil, err
 	}
 
@@ -158,13 +189,26 @@ func (s *GRPCServer) NewLink(ctx context.Context, req *msg.Request) (*msg.Link, 
 		Id:   req.GetLink().Id.BoxId,
 	})
 
+	if !s.Filter.IsUnlocked(req.Token, box) {
+		return nil, errors.New(fmt.Sprintf("Box %s is locked", req.GetBox().Id.Id))
+	}
+
 	if err != nil {
+		logger.E(err)
 		return nil, err
 	}
 
 	link, err := s.DB.NewLink(req.GetLink().Name, req.GetLink().Url, *box.Id)
 
 	if err != nil {
+		logger.E(err)
+		return nil, err
+	}
+
+	err = s.DB.SaveLink(s.Filter.EncryptLink(req.Token, link))
+
+	if err != nil {
+		logger.E(err)
 		return nil, err
 	}
 
@@ -176,21 +220,28 @@ func (s *GRPCServer) SaveLink(ctx context.Context, req *msg.Request) (*msg.Link,
 	err := s.TokenStore.ValidateToken(req.Token)
 
 	if err != nil {
+		logger.E(err)
 		return nil, err
 	}
 
-	_, err = s.DB.GetBoxById(msg.Key{
+	box, err := s.DB.GetBoxById(msg.Key{
 		Type: msg.Key_BOX,
 		Id:   req.GetLink().Id.BoxId,
 	})
 
+	if !s.Filter.IsUnlocked(req.Token, box) {
+		return nil, errors.New(fmt.Sprintf("Box %s is locked", req.GetBox().Id.Id))
+	}
+
 	if err != nil {
+		logger.E(err)
 		return nil, err
 	}
 
-	err = s.DB.SaveLink(req.GetLink())
+	err = s.DB.SaveLink(s.Filter.EncryptLink(req.Token, req.GetLink()))
 
 	if err != nil {
+		logger.E(err)
 		return nil, err
 	}
 
@@ -202,26 +253,56 @@ func (s *GRPCServer) GetLinkById(ctx context.Context, req *msg.Request) (*msg.Li
 	err := s.TokenStore.ValidateToken(req.Token)
 
 	if err != nil {
+		logger.E(err)
 		return nil, err
 	}
 
-	return s.DB.GetLinkById(*req.GetLink().Id)
+	box, err := s.DB.GetBoxById(msg.Key{
+		Type: msg.Key_BOX,
+		Id:   req.GetLink().Id.BoxId,
+	})
+
+	if !s.Filter.IsUnlocked(req.Token, box) {
+		return nil, errors.New(fmt.Sprintf("Box %s is locked", req.GetBox().Id.Id))
+	}
+
+	link, err := s.DB.GetLinkById(*req.GetLink().Id)
+
+	return s.Filter.DecryptLink(req.Token, link), err
 }
 func (s *GRPCServer) GetLinksByBoxId(ctx context.Context, req *msg.Request) (*msg.Links, error) {
 	err := s.TokenStore.ValidateToken(req.Token)
 
 	if err != nil {
+		logger.E(err)
 		return nil, err
+	}
+
+	box, err := s.DB.GetBoxById(msg.Key{
+		Type: msg.Key_BOX,
+		Id:   req.GetBox().Id.Id,
+	})
+
+	if !s.Filter.IsUnlocked(req.Token, box) {
+		return nil, errors.New(fmt.Sprintf("Box %s is locked", req.GetBox().Id.Id))
 	}
 
 	links, err := s.DB.GetLinksByBoxId(*req.GetBox().Id)
 
-	return &msg.Links{links}, err
+	var decryptedLinks []*msg.Link
+
+	for _, l := range links {
+		logger.OBJ(l)
+		decryptedLinks = append(decryptedLinks, s.Filter.DecryptLink(req.Token, l))
+	}
+
+	return &msg.Links{decryptedLinks}, err
 }
 func (s *GRPCServer) SearchLinks(ctx context.Context, req *msg.Request) (*msg.Links, error) {
 	err := s.TokenStore.ValidateToken(req.Token)
 
 	if err != nil {
+		logger.E(err)
 		return nil, err
 	}
 
@@ -230,7 +311,19 @@ func (s *GRPCServer) SearchLinks(ctx context.Context, req *msg.Request) (*msg.Li
 
 	for _, id := range linkIds {
 		link, _ := s.DB.GetLinkById(id)
-		links = append(links, link)
+		box, err := s.DB.GetBoxById(msg.Key{
+			Type: msg.Key_BOX,
+			Id:   link.Id.BoxId,
+		})
+
+		if err != nil {
+			logger.E(err)
+		}
+
+		if !s.Filter.IsUnlocked(req.Token, box) {
+			logger.E(errors.New(fmt.Sprintf("Box %s is locked", req.GetBox().Id.Id)))
+		}
+		links = append(links, s.Filter.DecryptLink(req.Token, link))
 	}
 	return &msg.Links{links}, nil
 }
@@ -238,6 +331,7 @@ func (s *GRPCServer) SearchLinks(ctx context.Context, req *msg.Request) (*msg.Li
 func getTLSCredentials(certFile, keyFile string) (credentials.TransportCredentials, error) {
 	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
 	if err != nil {
+		logger.E(err)
 		return nil, err
 	}
 	return credentials.NewTLS(&tls.Config{

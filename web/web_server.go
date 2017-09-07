@@ -32,7 +32,7 @@ func (s *HttpServer) Start() {
 		err := c.BindJSON(&box)
 		if err == nil {
 			if box.Id == nil {
-				newBox, err := db.NewBox(box.Name, box.Description)
+				newBox, err := db.NewBox(box.Name, box.Description, []byte("password"))
 				if err != nil {
 					c.JSON(200, Error(E_DB_CREATE_BOX, err))
 					return

@@ -3,7 +3,7 @@ package db
 import "github.com/sh3rp/databox/msg"
 
 type BoxDB interface {
-	NewBox(string, string) (*msg.Box, error)
+	NewBox(string, string, []byte) (*msg.Box, error)
 	SaveBox(*msg.Box) error
 	GetBoxById(msg.Key) (*msg.Box, error)
 	GetBoxes() ([]*msg.Box, error)

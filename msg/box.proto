@@ -7,7 +7,9 @@ service BoxService {
 
     rpc GetVersion(Request) returns (Version) {}
 
-    rpc NewBox(Request) returns (Box) {}
+    rpc UnlockBox(UnlockRequest) returns (Box) {}
+    rpc NewBox(UnlockRequest) returns (Box) {}
+    
     rpc SaveBox(Request) returns (Box) {}
     rpc GetBoxById(Request) returns (Box) {}
     rpc GetBoxes(Request) returns (Boxes) {}
@@ -29,6 +31,12 @@ message AuthResponse {
     int32 code = 1;
     string message = 2;
     Token token = 3;
+}
+
+message UnlockRequest {
+    Token token = 1;
+    Box box = 2;
+    string boxPassword = 3;
 }
 
 message Token {
@@ -76,6 +84,7 @@ message Box {
     Key id = 1;
     string name = 2;
     string description = 3;
+    bytes encryptedSignature = 4;
 }
 
 message Boxes {

@@ -19,13 +19,15 @@ var RootCmd = &cobra.Command{
 func init() {
 	AuthCmd.Flags().StringVarP(&username, "username", "u", "", "User name")
 
+	BoxUnlockCmd.Flags().StringVarP(&boxId, "box", "b", "", "Box id")
+
 	BoxNewCmd.Flags().StringVarP(&boxName, "name", "n", "", "Box name")
 	BoxNewCmd.Flags().StringVarP(&boxDescription, "description", "d", "", "Box description")
 	BoxNewCmd.Flags().BoolVarP(&setBoxEnv, "setEnv", "e", false, "Set newly created box to current working box")
 
-	BoxSetCmd.Flags().StringVarP(&boxId, "id", "i", "", "Box id")
+	BoxSetCmd.Flags().StringVarP(&boxId, "box", "b", "", "Box id")
 
-	BoxCmd.AddCommand(BoxNewCmd, BoxListCmd, BoxGetCmd, BoxSetCmd)
+	BoxCmd.AddCommand(BoxUnlockCmd, BoxNewCmd, BoxListCmd, BoxGetCmd, BoxSetCmd)
 
 	LinkLoadCmd.Flags().StringVarP(&linkId, "id", "i", "", "Link id")
 	LinkLoadCmd.Flags().StringVarP(&linkBoxId, "box", "b", "", "Box contain links to load")

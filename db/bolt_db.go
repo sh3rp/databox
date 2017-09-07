@@ -8,13 +8,15 @@ import (
 	"github.com/emirpasic/gods/sets/treeset"
 	"github.com/golang/protobuf/proto"
 	"github.com/sh3rp/databox/msg"
+	"github.com/sh3rp/databox/secure"
 )
 
 var BOX_BUCKET = "box"
 var LINK_BUCKET = "link"
 
 type BoltDB struct {
-	DB *bolt.DB
+	DB     *bolt.DB
+	Filter *secure.SecureFilter
 }
 
 func NewBoltDB(dbfilename string) BoxDB {
@@ -25,7 +27,7 @@ func NewBoltDB(dbfilename string) BoxDB {
 	return &BoltDB{DB: boltDB}
 }
 
-func (db *BoltDB) NewBox(name string, description string) (*msg.Box, error) {
+func (db *BoltDB) NewBox(name string, description string, password []byte) (*msg.Box, error) {
 	if name == "" {
 		return nil, errors.New("Must supply a name")
 	}
@@ -34,11 +36,16 @@ func (db *BoltDB) NewBox(name string, description string) (*msg.Box, error) {
 		return nil, errors.New("Must supply a description")
 	}
 
+	key := NewBoxKey()
+
 	box := &msg.Box{
-		Id:          NewBoxKey(),
+		Id:          key,
 		Name:        name,
 		Description: description,
 	}
+	signature := secure.GetSignature(password, box)
+	box.EncryptedSignature = signature
+
 	return box, db.SaveBox(box)
 }
 

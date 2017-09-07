@@ -1,5 +1,5 @@
 hash: 2c7a734d569912711eeb1205ef1cfe2ecaff83237df2f43adfd34f26cebe5c76
-updated: 2017-09-07T09:36:51.313752229-04:00
+updated: 2017-09-07T12:36:13.028416202-04:00
 imports:
 - name: github.com/boltdb/bolt
   version: 2f1ce7a837dcb8da3ec595b1dac9d0632f0f99e8
@@ -42,6 +42,8 @@ imports:
   subpackages:
   - internal/json
   - log
+- name: github.com/sh3rp/crypt
+  version: 36c836e2e397a21e5a0b47cd3f9e49bef6e382ae
 - name: github.com/skratchdot/open-golang
   version: 75fb7ed4208cf72d323d7d02fd1a5964a7a9073c
   subpackages:

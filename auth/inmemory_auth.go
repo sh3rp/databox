@@ -8,9 +8,7 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
-	"github.com/sh3rp/databox/db"
 	"github.com/sh3rp/databox/msg"
-	"github.com/sh3rp/databox/util"
 )
 
 // InMemoryAuthenticator - base authenticator struct for Authenticator
@@ -38,9 +36,8 @@ func (a *InMemoryAuthenticator) Authenticate(username, pass string) bool {
 // AddUser - adds a user with a password
 func (a *InMemoryAuthenticator) AddUser(user, pass string) error {
 	a.users[user] = &User{
-		Username:      user,
-		Password:      pass,
-		EncryptionKey: []byte(util.GetPassHash(db.GenerateID())),
+		Username: user,
+		Password: pass,
 	}
 	return nil
 }
@@ -52,14 +49,6 @@ func (a *InMemoryAuthenticator) DeleteUser(username string) error {
 	}
 	delete(a.users, username)
 	return nil
-}
-
-// GetEncryptionKey returns the encryption key for this username
-func (a *InMemoryAuthenticator) GetEncryptionKey(username string) ([]byte, error) {
-	if _, ok := a.users[username]; !ok {
-		return nil, errors.New(ERR_AUTH_NO_USER)
-	}
-	return a.users[username].EncryptionKey, nil
 }
 
 type InMemoryTokenStore struct {

@@ -2,12 +2,16 @@ package commands
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"os"
+	"syscall"
 
 	"github.com/sh3rp/databox/config"
 	"github.com/sh3rp/databox/msg"
 	"github.com/sh3rp/databox/util"
+	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/spf13/cobra"
 )
@@ -49,14 +53,73 @@ var BoxNewCmd = &cobra.Command{
 			return
 		}
 
-		req := &msg.Request{
-			Token: token,
-			Objects: &msg.Request_Box{
-				Box: &msg.Box{Name: boxName, Description: boxDescription},
-			},
+		fmt.Print("Box password: ")
+		bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
+		hasher := sha256.New()
+		hasher.Write(bytePassword)
+		password := string(hex.EncodeToString(hasher.Sum(nil)))
+
+		req := &msg.UnlockRequest{
+			Token:       token,
+			Box:         &msg.Box{Name: boxName, Description: boxDescription},
+			BoxPassword: password,
 		}
 
 		box, err := client.NewBox(context.Background(), req)
+
+		if err != nil {
+			fmt.Printf("Error creating new box: %v\n", err)
+		} else {
+			if setBoxEnv {
+				cfg := &config.ClientConfig{}
+				cfg.Read()
+				cfg.DefaultBoxId = box.Id.Id
+				cfg.Write()
+			}
+			util.PrettyPrint(box)
+		}
+	},
+}
+
+var BoxUnlockCmd = &cobra.Command{
+	Use:   "unlock",
+	Short: "Unlock the specified box for writing into",
+	Run: func(cmd *cobra.Command, args []string) {
+		conn, err := Dial()
+
+		if err != nil {
+			panic(err)
+		}
+
+		defer conn.Close()
+
+		client := msg.NewBoxServiceClient(conn)
+
+		if boxId == "" {
+			fmt.Println("You must specify a boxId when unlocking a box.")
+			os.Exit(1)
+		}
+
+		token, err := config.ReadToken()
+
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+			return
+		}
+
+		fmt.Print("Box password: ")
+		bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
+		hasher := sha256.New()
+		hasher.Write(bytePassword)
+		password := string(hex.EncodeToString(hasher.Sum(nil)))
+
+		req := &msg.UnlockRequest{
+			Token:       token,
+			Box:         &msg.Box{Id: &msg.Key{Id: boxId}},
+			BoxPassword: password,
+		}
+
+		box, err := client.UnlockBox(context.Background(), req)
 
 		if err != nil {
 			fmt.Printf("Error creating new box: %v\n", err)

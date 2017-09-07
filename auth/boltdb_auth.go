@@ -7,8 +7,6 @@ import (
 
 	"github.com/boltdb/bolt"
 	"github.com/rs/zerolog/log"
-	d "github.com/sh3rp/databox/db"
-	"github.com/sh3rp/databox/util"
 )
 
 var BOLT_USER_BUCKET = "user"
@@ -49,25 +47,14 @@ func (db *BoltDBAuthenticator) Authenticate(username, pass string) bool {
 
 func (db *BoltDBAuthenticator) AddUser(username, pass string) error {
 	user := &User{
-		Username:      username,
-		Password:      pass,
-		EncryptionKey: []byte(util.GetPassHash(d.GenerateID())),
+		Username: username,
+		Password: pass,
 	}
 	return db.saveUser(user)
 }
 
 func (db *BoltDBAuthenticator) DeleteUser(username string) error {
 	return db.deleteUser(username)
-}
-
-func (db *BoltDBAuthenticator) GetEncryptionKey(username string) ([]byte, error) {
-	user, err := db.getUser(username)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return user.EncryptionKey, nil
 }
 
 func (db *BoltDBAuthenticator) saveUser(user *User) error {
