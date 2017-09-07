@@ -1,5 +1,5 @@
 hash: 2c7a734d569912711eeb1205ef1cfe2ecaff83237df2f43adfd34f26cebe5c76
-updated: 2017-09-07T16:57:21.617718051-04:00
+updated: 2017-09-07T19:21:58.302201475-04:00
 imports:
 - name: github.com/boltdb/bolt
   version: fa5367d20c994db73282594be0146ab221657943
@@ -61,6 +61,8 @@ imports:
 - name: golang.org/x/crypto
   version: 81e90905daefcd6fd217b62423c0908922eadb30
   subpackages:
+  - bcrypt
+  - blowfish
   - ssh/terminal
 - name: golang.org/x/net
   version: 66aacef3dd8a676686c7ae3716979581e8b03c47

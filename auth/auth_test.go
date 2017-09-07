@@ -31,31 +31,31 @@ func (suite *AuthTestSuite) TearDownTest() {
 }
 
 func (suite *AuthTestSuite) TestAuthenticateSuccess() {
-	authed := suite.Auth.Authenticate(TEST_USER, TEST_PASSWORD)
+	authed := suite.Auth.Authenticate(TEST_USER, []byte(TEST_PASSWORD))
 	assert.True(suite.T(), authed)
 }
 
 func (suite *AuthTestSuite) TestAuthenticateFailure() {
-	authed := suite.Auth.Authenticate(TEST_USER, "badpassword")
+	authed := suite.Auth.Authenticate(TEST_USER, []byte("badpassword"))
 	assert.False(suite.T(), authed)
 }
 
 func (suite *AuthTestSuite) TestAuthenticateEmptyFields() {
-	authed := suite.Auth.Authenticate("", TEST_PASSWORD)
+	authed := suite.Auth.Authenticate("", []byte(TEST_PASSWORD))
 	assert.False(suite.T(), authed)
-	authed = suite.Auth.Authenticate(TEST_USER, "")
+	authed = suite.Auth.Authenticate(TEST_USER, []byte(""))
 	assert.False(suite.T(), authed)
 }
 
 func (suite *AuthTestSuite) TestAddUserSuccess() {
-	err := suite.Auth.AddUser(TEST_USER, TEST_PASSWORD)
+	err := suite.Auth.AddUser(TEST_USER, []byte(TEST_PASSWORD))
 	assert.Nil(suite.T(), err)
-	authed := suite.Auth.Authenticate(TEST_USER, TEST_PASSWORD)
+	authed := suite.Auth.Authenticate(TEST_USER, []byte(TEST_PASSWORD))
 	assert.True(suite.T(), authed)
 }
 
 func (suite *AuthTestSuite) TestDeleteUserSuccess() {
-	err := suite.Auth.AddUser(TEST_USER, TEST_PASSWORD)
+	err := suite.Auth.AddUser(TEST_USER, []byte(TEST_PASSWORD))
 	assert.Nil(suite.T(), err)
 	err = suite.Auth.DeleteUser(TEST_USER)
 	assert.Nil(suite.T(), err)

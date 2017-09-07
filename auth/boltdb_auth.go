@@ -48,9 +48,15 @@ func (db *BoltDBAuthenticator) Authenticate(username string, pass []byte) bool {
 }
 
 func (db *BoltDBAuthenticator) AddUser(username string, pass []byte) error {
+	hashedPassword, err := bcrypt.GenerateFromPassword(pass, 10)
+
+	if err != nil {
+		return err
+	}
+
 	user := &User{
 		Username: username,
-		Password: pass,
+		Password: hashedPassword,
 	}
 	return db.saveUser(user)
 }

@@ -16,10 +16,7 @@ func getInMemoryAuth() (Authenticator, TokenStore, string) {
 	authenticator := &InMemoryAuthenticator{
 		users: make(map[string]*User),
 	}
-	authenticator.users[TEST_USER] = &User{
-		Username: TEST_USER,
-		Password: TEST_PASSWORD,
-	}
+	authenticator.AddUser(TEST_USER, []byte(TEST_PASSWORD))
 	tokenStore := NewInMemoryTokenStore(1)
 	return authenticator, tokenStore, ""
 }
