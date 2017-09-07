@@ -1,6 +1,8 @@
 package util
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"os"
 
@@ -24,4 +26,11 @@ func GetVersion() *msg.Version {
 		Minor: int32(V_MINOR),
 		Patch: int32(V_PATCH),
 	}
+}
+
+func GetPassHash(password string) string {
+	hasher := sha256.New()
+	hasher.Write([]byte(password))
+	hash := hasher.Sum(nil)
+	return hex.EncodeToString(hash)
 }
