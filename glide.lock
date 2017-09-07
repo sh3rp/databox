@@ -1,8 +1,8 @@
 hash: 2c7a734d569912711eeb1205ef1cfe2ecaff83237df2f43adfd34f26cebe5c76
-updated: 2017-09-07T12:36:13.028416202-04:00
+updated: 2017-09-07T16:57:21.617718051-04:00
 imports:
 - name: github.com/boltdb/bolt
-  version: 2f1ce7a837dcb8da3ec595b1dac9d0632f0f99e8
+  version: fa5367d20c994db73282594be0146ab221657943
 - name: github.com/emirpasic/gods
   version: f6c17b524822278a87e3b3bd809fec33b51f5b46
   subpackages:
@@ -32,13 +32,13 @@ imports:
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/json-iterator/go
-  version: 374e68a1448d4961b0c16376507813b901dc99f0
+  version: 2c67d0f68a9e9bd75147610b323fe31f4208270b
 - name: github.com/mattn/go-isatty
   version: fc9e8d8ef48496124e79ae0df75490096eccf6fe
 - name: github.com/oklog/ulid
   version: 66bb6560562feca7045b23db1ae85b01260f87c5
 - name: github.com/rs/zerolog
-  version: 2ed2f2c974489526d10329dae76d0f175684109a
+  version: 3ac71fc58dbd43122668a912b755b0979ba9ce1f
   subpackages:
   - internal/json
   - log
@@ -63,7 +63,7 @@ imports:
   subpackages:
   - ssh/terminal
 - name: golang.org/x/net
-  version: 1c05540f6879653db88113bc4a2b70aec4bd491f
+  version: 66aacef3dd8a676686c7ae3716979581e8b03c47
   subpackages:
   - context
   - html
@@ -91,7 +91,7 @@ imports:
   subpackages:
   - googleapis/rpc/status
 - name: google.golang.org/grpc
-  version: 4bbe223b12805ab25acbb9d2cadfab2ec9d04bb6
+  version: 067cb1fcbf74396966d96d4727b43ca880e9581a
   subpackages:
   - balancer
   - codes

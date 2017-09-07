@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"time"
 
 	"golang.org/x/net/context"
 
@@ -59,7 +58,7 @@ func (s *GRPCServer) Start() {
 func (s *GRPCServer) Authenticate(ctx context.Context, req *msg.AuthRequest) (*msg.AuthResponse, error) {
 	if s.Auth.Authenticate(req.Username, req.Password) {
 		log.Info().Msgf("User %s authenticated successfully, generating token", req.Username)
-		token := s.TokenStore.GenerateToken(req.Username, time.Now().Add(20*time.Minute).UnixNano())
+		token := s.TokenStore.GenerateToken(req.Username)
 		log.Info().Msgf("Sending token: %v\n", token)
 		return &msg.AuthResponse{
 			Code:    0,
@@ -190,7 +189,7 @@ func (s *GRPCServer) NewLink(ctx context.Context, req *msg.Request) (*msg.Link, 
 	})
 
 	if !s.Filter.IsUnlocked(req.Token, box) {
-		return nil, errors.New(fmt.Sprintf("Box %s is locked", req.GetBox().Id.Id))
+		return nil, errors.New(fmt.Sprintf("Box %s is locked", box.Id.Id))
 	}
 
 	if err != nil {

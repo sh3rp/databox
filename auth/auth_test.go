@@ -62,7 +62,7 @@ func (suite *AuthTestSuite) TestDeleteUserSuccess() {
 }
 
 func (suite *AuthTestSuite) TestGenerateToken() {
-	token := suite.TokenStore.GenerateToken(TEST_USER, int64(time.Now().Add(1*time.Minute).UnixNano()))
+	token := suite.TokenStore.GenerateToken(TEST_USER)
 
 	assert.Equal(suite.T(), TEST_USER, token.Username)
 	assert.True(suite.T(), token.ExpirationTime > (time.Now().UnixNano()))
@@ -70,14 +70,14 @@ func (suite *AuthTestSuite) TestGenerateToken() {
 }
 
 func (suite *AuthTestSuite) TestValidateTokenSuccess() {
-	token := suite.TokenStore.GenerateToken(TEST_USER, int64(time.Now().Add(1*time.Minute).UnixNano()))
+	token := suite.TokenStore.GenerateToken(TEST_USER)
 
 	validationError := suite.TokenStore.ValidateToken(token)
 	assert.Nil(suite.T(), validationError)
 }
 
 func (suite *AuthTestSuite) TestValidateTokenFailureExpiration() {
-	token := suite.TokenStore.GenerateToken(TEST_USER, time.Now().Add(1*time.Second).UnixNano())
+	token := suite.TokenStore.GenerateToken(TEST_USER)
 	time.Sleep(1 * time.Second)
 	validationError := suite.TokenStore.ValidateToken(token)
 	assert.NotNil(suite.T(), validationError)
@@ -96,7 +96,7 @@ func (suite *AuthTestSuite) TestValidateTokenFailureUser() {
 }
 
 func (suite *AuthTestSuite) TestValidateTokenFailureToken() {
-	suite.TokenStore.GenerateToken(TEST_USER, time.Now().Add(1*time.Second).UnixNano())
+	suite.TokenStore.GenerateToken(TEST_USER)
 	badToken := &msg.Token{
 		Username:       TEST_USER,
 		TokenHash:      "asdfas",

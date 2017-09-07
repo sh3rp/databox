@@ -34,6 +34,6 @@ func getBoltDBAuth() (Authenticator, TokenStore, string) {
 		DB: db,
 	}
 	a.AddUser(TEST_USER, TEST_PASSWORD)
-	tokenStore := NewInMemoryTokenStore()
+	tokenStore := NewInMemoryTokenStore(1)
 	return a, tokenStore, id
 }

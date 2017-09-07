@@ -18,7 +18,7 @@ type Server struct {
 }
 
 func NewServer(httpPort, grpcPort int, db db.BoxDB, search search.SearchEngine, a auth.Authenticator) *Server {
-	tokenStore := auth.NewInMemoryTokenStore()
+	tokenStore := auth.NewInMemoryTokenStore(20 * 60) // 20 minutes
 	filter := secure.NewSecureFilter(a, tokenStore)
 	return &Server{
 		HttpRouter: &HttpServer{DB: db, Search: search, HttpRouter: gin.Default(), Port: httpPort},

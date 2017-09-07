@@ -20,6 +20,6 @@ func getInMemoryAuth() (Authenticator, TokenStore, string) {
 		Username: TEST_USER,
 		Password: TEST_PASSWORD,
 	}
-	tokenStore := NewInMemoryTokenStore()
+	tokenStore := NewInMemoryTokenStore(1)
 	return authenticator, tokenStore, ""
 }

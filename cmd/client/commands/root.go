@@ -23,7 +23,7 @@ func init() {
 
 	BoxNewCmd.Flags().StringVarP(&boxName, "name", "n", "", "Box name")
 	BoxNewCmd.Flags().StringVarP(&boxDescription, "description", "d", "", "Box description")
-	BoxNewCmd.Flags().BoolVarP(&setBoxEnv, "setEnv", "e", false, "Set newly created box to current working box")
+	BoxNewCmd.Flags().BoolVarP(&setBoxEnv, "setEnv", "e", true, "Set newly created box to current working box")
 
 	BoxSetCmd.Flags().StringVarP(&boxId, "box", "b", "", "Box id")
 

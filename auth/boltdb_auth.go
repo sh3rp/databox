@@ -5,6 +5,8 @@ import (
 	"encoding/gob"
 	"errors"
 
+	"golang.org/x/crypto/bcrypt"
+
 	"github.com/boltdb/bolt"
 	"github.com/rs/zerolog/log"
 )
@@ -36,16 +38,16 @@ func NewBoltDBAuth(dbpath string) *BoltDBAuthenticator {
 	}
 }
 
-func (db *BoltDBAuthenticator) Authenticate(username, pass string) bool {
+func (db *BoltDBAuthenticator) Authenticate(username string, pass []byte) bool {
 	user, err := db.getUser(username)
 	if err != nil {
 		log.Error().Msgf("Authenticate: error authenticating: %v", err)
 		return false
 	}
-	return user.Password == pass
+	return bcrypt.CompareHashAndPassword(user.Password, pass) == nil
 }
 
-func (db *BoltDBAuthenticator) AddUser(username, pass string) error {
+func (db *BoltDBAuthenticator) AddUser(username string, pass []byte) error {
 	user := &User{
 		Username: username,
 		Password: pass,

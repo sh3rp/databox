@@ -8,17 +8,17 @@ var ERR_VALIDATION_USER = "User has not authenticated"
 var ERR_AUTH_NO_USER = "No such user"
 
 type Authenticator interface {
-	Authenticate(string, string) bool
-	AddUser(string, string) error
+	Authenticate(string, []byte) bool
+	AddUser(string, []byte) error
 	DeleteUser(string) error
 }
 
 type TokenStore interface {
-	GenerateToken(string, int64) *msg.Token
+	GenerateToken(string) *msg.Token
 	ValidateToken(*msg.Token) error
 }
 
 type User struct {
 	Username string
-	Password string
+	Password []byte
 }

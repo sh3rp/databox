@@ -2,6 +2,6 @@
     "grpc_port":5656,
     "http_port":8080,
     "data_directory":"/tmp/bawx",
-    "cert_file":"/Users/skendall/Dropbox/credentials/ssl/localhost/server.crt",
-    "key_file":"/Users/skendall/Dropbox/credentials/ssl/localhost/server.key"
+    "cert_file":"/home/shep/Dropbox/credentials/ssl/localhost/server.crt",
+    "key_file":"/home/shep/Dropbox/credentials/ssl/localhost/server.key"
 }

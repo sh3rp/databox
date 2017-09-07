@@ -9,6 +9,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/sh3rp/databox/msg"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // InMemoryAuthenticator - base authenticator struct for Authenticator
@@ -24,9 +25,9 @@ func NewInMemoryAuthenticator() Authenticator {
 }
 
 // Authenticate - implementation for Authenticate contract
-func (a *InMemoryAuthenticator) Authenticate(username, pass string) bool {
+func (a *InMemoryAuthenticator) Authenticate(username string, pass []byte) bool {
 	if user, ok := a.users[username]; ok {
-		if pass == user.Password {
+		if bcrypt.CompareHashAndPassword(user.Password, pass) == nil {
 			return true
 		}
 	}
@@ -34,10 +35,16 @@ func (a *InMemoryAuthenticator) Authenticate(username, pass string) bool {
 }
 
 // AddUser - adds a user with a password
-func (a *InMemoryAuthenticator) AddUser(user, pass string) error {
+func (a *InMemoryAuthenticator) AddUser(user string, pass []byte) error {
+	hashedPassword, err := bcrypt.GenerateFromPassword(pass, 10)
+
+	if err != nil {
+		return err
+	}
+
 	a.users[user] = &User{
 		Username: user,
-		Password: pass,
+		Password: hashedPassword,
 	}
 	return nil
 }
@@ -52,16 +59,18 @@ func (a *InMemoryAuthenticator) DeleteUser(username string) error {
 }
 
 type InMemoryTokenStore struct {
-	tokens map[string]*msg.Token
+	tokens                  map[string]*msg.Token
+	expirationTimeInSeconds int64
 }
 
-func NewInMemoryTokenStore() TokenStore {
+func NewInMemoryTokenStore(expTimeInSeconds int64) TokenStore {
 	return &InMemoryTokenStore{
-		tokens: make(map[string]*msg.Token),
+		tokens:                  make(map[string]*msg.Token),
+		expirationTimeInSeconds: expTimeInSeconds,
 	}
 }
 
-func (ts *InMemoryTokenStore) GenerateToken(user string, expiration int64) *msg.Token {
+func (ts *InMemoryTokenStore) GenerateToken(user string) *msg.Token {
 	hasher := sha256.New()
 	hasher.Write([]byte(user))
 	randBytes := make([]byte, 32)
@@ -74,7 +83,7 @@ func (ts *InMemoryTokenStore) GenerateToken(user string, expiration int64) *msg.
 	token := &msg.Token{
 		Username:       user,
 		TokenHash:      hex.EncodeToString(hash),
-		ExpirationTime: expiration,
+		ExpirationTime: ts.getCurrentExpiration(),
 	}
 
 	ts.tokens[user] = token
@@ -92,10 +101,16 @@ func (ts *InMemoryTokenStore) ValidateToken(token *msg.Token) error {
 			return errors.New(ERR_VALIDATION_EXPIRE)
 		}
 		if ts.tokens[token.Username].TokenHash == token.TokenHash {
+			token.ExpirationTime = ts.getCurrentExpiration()
+			ts.tokens[token.Username] = token
 			return nil
 		} else {
 			return errors.New(ERR_VALIDATION_TOKEN)
 		}
 	}
 	return errors.New(ERR_VALIDATION_USER)
+}
+
+func (ts *InMemoryTokenStore) getCurrentExpiration() int64 {
+	return time.Now().Add(time.Duration(ts.expirationTimeInSeconds) * time.Second).UnixNano()
 }
