@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
+	"github.com/sh3rp/databox/auth"
 	"github.com/sh3rp/databox/config"
 	"github.com/sh3rp/databox/db"
 	"github.com/sh3rp/databox/search"
@@ -35,7 +36,8 @@ func main() {
 
 	database := db.NewBoltDB(serverConfig.DataDirectory + "/box.db")
 	search := search.NewBoltSearchEngine(serverConfig.DataDirectory + "/search.db")
-	server := web.NewServer(serverConfig.HttpPort, serverConfig.GrpcPort, database, search)
+	authenticator := auth.NewBoltDBAuth(serverConfig.DataDirectory + "/user.db")
+	server := web.NewServer(serverConfig.HttpPort, serverConfig.GrpcPort, database, search, authenticator)
 	server.Start()
 
 	for {

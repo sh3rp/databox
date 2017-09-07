@@ -1,12 +1,12 @@
-all: glide protobuf test serverdarwin serverlinux clientdarwin clientlinux
+all: glide protobuf test serverdarwin serverlinux clientdarwin clientlinux userdbdarwin userdblinux
 
-darwin: glide protobuf test serverdarwin clientdarwin
+darwin: glide protobuf test serverdarwin clientdarwin userdbdarwin
 
-darwinfast: protobuf serverdarwin clientdarwin
+darwinfast: protobuf serverdarwin clientdarwin userdbdarwin
 
-linux: glide protobuf test serverlinux clientlinux
+linux: glide protobuf test serverlinux clientlinux userdblinux
 
-linuxfast: protobuf serverlinux clientlinux
+linuxfast: protobuf serverlinux clientlinux userdblinux
 
 test:
 	go test db/* -cover -v
@@ -24,6 +24,12 @@ clientdarwin:
 
 clientlinux:
 	GOOS=linux GOARCH=amd64 go build -o bawx.linux cmd/client/main.go
+
+userdbdarwin:
+	GOOS=darwin GOARCH=amd64 go build -o bawx-userdb.darwin cmd/userdb/userdb.go
+
+userdblinux:
+	GOOS=linux GOARCH=amd64 go build -o bawx-userdb.linux cmd/userdb/userdb.go
 
 protobuf:
 	protoc --proto_path=msg msg/box.proto --go_out=plugins=grpc:msg

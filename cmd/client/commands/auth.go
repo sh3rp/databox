@@ -3,10 +3,12 @@ package commands
 import (
 	"context"
 	"fmt"
+	"os"
 	"syscall"
 
 	"github.com/sh3rp/databox/config"
 	"github.com/sh3rp/databox/msg"
+	"github.com/sh3rp/databox/util"
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -26,7 +28,8 @@ var AuthCmd = &cobra.Command{
 		conn, err := Dial()
 
 		if err != nil {
-			panic(err)
+			fmt.Printf("Error connecting to server: %v\n", err)
+			os.Exit(1)
 		}
 
 		defer conn.Close()
@@ -35,8 +38,13 @@ var AuthCmd = &cobra.Command{
 
 		res, err := client.Authenticate(context.Background(), &msg.AuthRequest{
 			Username: username,
-			Password: password,
+			Password: util.GetPassHash(password),
 		})
+
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+			os.Exit(1)
+		}
 
 		if res.Code == 0 {
 			err = config.WriteToken(res.Token)

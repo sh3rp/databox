@@ -54,9 +54,6 @@ func (db *BoltDBAuthenticator) DeleteUser(user string) error {
 func (db *BoltDBAuthenticator) saveUser(user, pass string) error {
 	err := db.DB.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BOLT_USER_BUCKET))
-		if len(bucket.Get([]byte(user))) == 0 {
-			return errors.New(ERR_AUTH_NO_USER)
-		}
 		if pass == "" {
 			return bucket.Delete([]byte(user))
 		} else {
@@ -72,6 +69,9 @@ func (db *BoltDBAuthenticator) getUser(user string) (string, error) {
 	err := db.DB.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BOLT_USER_BUCKET))
 		data := bucket.Get([]byte(user))
+		if len(data) == 0 {
+			return errors.New(ERR_AUTH_NO_USER)
+		}
 		password = string(data)
 		return nil
 	})
