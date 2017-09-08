@@ -14,10 +14,10 @@ test:
 	go test auth/* -cover -v
 
 serverdarwin:
-	GOOS=darwin GOARCH=amd64 go build -o bawx-server.darwin cmd/server/server.go
+	GOOS=darwin GOARCH=amd64 go build -o bawx-server.darwin cmd/srv/server.go
 
 serverlinux:
-	GOOS=linux GOARCH=amd64 go build -o bawx-server.linux cmd/server/server.go
+	GOOS=linux GOARCH=amd64 go build -o bawx-server.linux cmd/srv/server.go
 
 clientdarwin:
 	GOOS=darwin GOARCH=amd64 go build -o bawx.darwin cmd/client/main.go

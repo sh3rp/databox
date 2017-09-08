@@ -11,8 +11,8 @@ import (
 	"github.com/sh3rp/databox/config"
 	"github.com/sh3rp/databox/db"
 	"github.com/sh3rp/databox/search"
+	"github.com/sh3rp/databox/server"
 	"github.com/sh3rp/databox/util"
-	"github.com/sh3rp/databox/web"
 )
 
 var configFile string
@@ -37,8 +37,8 @@ func main() {
 	database := db.NewBoltDB(serverConfig.DataDirectory + "/box.db")
 	search := search.NewBoltSearchEngine(serverConfig.DataDirectory + "/search.db")
 	authenticator := auth.NewBoltDBAuth(serverConfig.DataDirectory + "/user.db")
-	server := web.NewServer(serverConfig.HttpPort, serverConfig.GrpcPort, database, search, authenticator)
-	server.Start()
+	s := server.NewServer(serverConfig.HttpPort, serverConfig.GrpcPort, database, search, authenticator)
+	s.Start()
 
 	for {
 		time.Sleep(1 * time.Second)

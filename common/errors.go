@@ -1,4 +1,4 @@
-package web
+package common
 
 var SUCCESS = 0
 var SUCCESS_MSG = "ok"

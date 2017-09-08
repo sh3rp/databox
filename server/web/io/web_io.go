@@ -1,4 +1,8 @@
-package web
+package io
+
+import (
+	"github.com/sh3rp/databox/common"
+)
 
 type Response struct {
 	Code    int         `json:"code"`
@@ -8,8 +12,8 @@ type Response struct {
 
 func Success(data interface{}) *Response {
 	return &Response{
-		Code:    SUCCESS,
-		Message: SUCCESS_MSG,
+		Code:    common.SUCCESS,
+		Message: common.SUCCESS_MSG,
 		Data:    data,
 	}
 }
