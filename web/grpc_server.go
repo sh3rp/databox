@@ -56,7 +56,7 @@ func (s *GRPCServer) Start() {
 }
 
 func (s *GRPCServer) Authenticate(ctx context.Context, req *msg.AuthRequest) (*msg.AuthResponse, error) {
-	if s.Auth.Authenticate(req.Username, req.Password) {
+	if s.Auth.Authenticate(req.Username, []byte(req.Password)) {
 		log.Info().Msgf("User %s authenticated successfully, generating token", req.Username)
 		token := s.TokenStore.GenerateToken(req.Username)
 		log.Info().Msgf("Sending token: %v\n", token)

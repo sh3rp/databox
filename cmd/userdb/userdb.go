@@ -47,7 +47,7 @@ func addUser(user, dbpath string) {
 	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
 	password := string(bytePassword)
 
-	err = auth.AddUser(user, util.GetPassHash(password))
+	err = auth.AddUser(user, []byte(util.GetPassHash(password)))
 
 	if err != nil {
 		fmt.Printf("\nError adding user: %v\n", err)
