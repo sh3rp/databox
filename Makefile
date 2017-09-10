@@ -12,6 +12,7 @@ test:
 	go test db/* -cover -v
 	go test search/* -cover -v
 	go test auth/* -cover -v
+	go test server/web/routes/* -cover -v
 
 serverdarwin:
 	GOOS=darwin GOARCH=amd64 go build -o bawx-server.darwin cmd/srv/server.go

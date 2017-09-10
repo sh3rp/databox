@@ -17,11 +17,13 @@ func (r *RouterBase) PostAuth(c *gin.Context) {
 	} else {
 		if r.Auth.Authenticate(auth.Username, []byte(auth.Password)) {
 			token := r.TokenStore.GenerateToken(auth.Username)
-			if token != nil {
+			if token == nil {
 				c.JSON(200, io.Error(common.E_IO_TOKEN_CREATION, errors.New("Error generating token")))
 			} else {
 				c.JSON(200, io.Success(token))
 			}
+		} else {
+			c.JSON(200, io.Error(common.E_IO_INVALID_LOGIN, errors.New("Invalid authentication")))
 		}
 	}
 }
