@@ -9,8 +9,8 @@ import (
 func (r *RouterBase) GetBox(c *gin.Context) {
 	boxes, err := r.DB.GetBoxes()
 	if err != nil {
-		c.JSON(200, io.Error(common.E_DB_BOX_NOT_FOUND, err))
+		io.Respond(c, common.E_DB_BOX_NOT_FOUND, nil)
 	} else {
-		c.JSON(200, io.Success(boxes))
+		io.Respond(c, common.SUCCESS, boxes)
 	}
 }

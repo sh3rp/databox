@@ -13,8 +13,8 @@ func (r *RouterBase) GetBoxById(c *gin.Context) {
 	box, err := r.DB.GetBoxById(msg.Key{Id: id, Type: msg.Key_BOX})
 
 	if err == nil {
-		c.JSON(200, io.Success(box))
+		io.Respond(c, common.SUCCESS, box)
 	} else {
-		c.JSON(200, io.Error(common.E_DB_BOX_NOT_FOUND, err))
+		io.Respond(c, common.E_DB_BOX_NOT_FOUND, nil)
 	}
 }

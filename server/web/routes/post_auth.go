@@ -1,8 +1,6 @@
 package routes
 
 import (
-	"errors"
-
 	"github.com/gin-gonic/gin"
 	"github.com/sh3rp/databox/common"
 	"github.com/sh3rp/databox/msg"
@@ -13,17 +11,17 @@ func (r *RouterBase) PostAuth(c *gin.Context) {
 	var auth *msg.AuthRequest
 	err := c.BindJSON(&auth)
 	if err != nil {
-		c.JSON(200, io.Error(common.E_IO_AUTH_PARSE, err))
+		io.Respond(c, common.E_IO_AUTH_PARSE, nil)
 	} else {
 		if r.Auth.Authenticate(auth.Username, []byte(auth.Password)) {
 			token := r.TokenStore.GenerateToken(auth.Username)
 			if token == nil {
-				c.JSON(200, io.Error(common.E_IO_TOKEN_CREATION, errors.New("Error generating token")))
+				io.Respond(c, common.E_IO_TOKEN_CREATION, nil)
 			} else {
-				c.JSON(200, io.Success(token))
+				io.Respond(c, common.SUCCESS, token)
 			}
 		} else {
-			c.JSON(200, io.Error(common.E_IO_INVALID_LOGIN, errors.New("Invalid authentication")))
+			io.Respond(c, common.E_IO_INVALID_LOGIN, nil)
 		}
 	}
 }

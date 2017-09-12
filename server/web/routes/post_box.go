@@ -3,26 +3,29 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/sh3rp/databox/common"
-	"github.com/sh3rp/databox/msg"
 	"github.com/sh3rp/databox/server/web/io"
 )
 
 func (r *RouterBase) PostBox(c *gin.Context) {
-	var box msg.Box
-	err := c.BindJSON(&box)
+	var req io.NewBoxRequest
+	err := c.BindJSON(&req)
 	if err == nil {
-		if box.Id == nil {
-			newBox, err := r.DB.NewBox(box.Name, box.Description, []byte("password"))
-			if err != nil {
-				c.JSON(200, io.Error(common.E_DB_CREATE_BOX, err))
-				return
-			} else {
-				c.JSON(200, io.Success(newBox))
-				return
-			}
+		if req.Name == "" {
+			io.Respond(c, common.E_BOX_INVALID_NAME, nil)
+		} else if req.Description == "" {
+			io.Respond(c, common.E_BOX_INVALID_DESCRIPTION, nil)
+		} else if req.Password == "" {
+			io.Respond(c, common.E_BOX_INVALID_PASSWORD, nil)
 		}
-		c.JSON(200, io.Success(box))
+		newBox, err := r.DB.NewBox(req.Name, req.Description, []byte(req.Password))
+		if err != nil {
+			io.Respond(c, common.E_DB_CREATE_BOX, nil)
+			return
+		} else {
+			io.Respond(c, common.SUCCESS, newBox)
+			return
+		}
 	} else {
-		c.JSON(200, io.Error(common.E_IO_DECODE_BOX, err))
+		io.Respond(c, common.E_IO_DECODE_BOX, nil)
 	}
 }

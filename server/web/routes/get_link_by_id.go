@@ -13,7 +13,7 @@ func (r *RouterBase) GetLinkById(c *gin.Context) {
 	_, err := r.DB.GetBoxById(msg.Key{Id: boxId, Type: msg.Key_BOX})
 
 	if err != nil {
-		c.JSON(200, io.Error(common.E_DB_BOX_NOT_FOUND, err))
+		io.Respond(c, common.E_DB_BOX_NOT_FOUND, nil)
 		return
 	}
 
@@ -22,10 +22,10 @@ func (r *RouterBase) GetLinkById(c *gin.Context) {
 	link, err := r.DB.GetLinkById(msg.Key{Id: linkId, BoxId: boxId, Type: msg.Key_LINK})
 
 	if err != nil {
-		c.JSON(200, io.Error(common.E_DB_LINK_NOT_FOUND, err))
+		io.Respond(c, common.E_DB_LINK_NOT_FOUND, nil)
 		return
 	} else {
-		c.JSON(200, io.Success(link))
+		io.Respond(c, common.SUCCESS, link)
 	}
 
 }

@@ -1,8 +1,17 @@
 package io
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/sh3rp/databox/common"
+	"github.com/sh3rp/databox/msg"
 )
+
+type NewBoxRequest struct {
+	Token       *msg.Token
+	Name        string
+	Description string
+	Password    string
+}
 
 type Response struct {
 	Code    int         `json:"code"`
@@ -18,9 +27,17 @@ func Success(data interface{}) *Response {
 	}
 }
 
-func Error(code int, err error) *Response {
+func Error(code int, err string) *Response {
 	return &Response{
 		Code:    code,
-		Message: err.Error(),
+		Message: err,
+	}
+}
+
+func Respond(c *gin.Context, errorCode int, data interface{}) {
+	if errorCode != 0 {
+		c.JSON(200, Error(errorCode, common.ERRORS[errorCode]))
+	} else {
+		c.JSON(200, Success(data))
 	}
 }

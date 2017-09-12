@@ -13,9 +13,9 @@ func (r *RouterBase) GetLink(c *gin.Context) {
 	links, err := r.DB.GetLinksByBoxId(msg.Key{Id: id, Type: msg.Key_BOX})
 
 	if err == nil {
-		c.JSON(200, io.Success(links))
+		io.Respond(c, common.SUCCESS, links)
 	} else {
-		c.JSON(200, io.Error(common.E_DB_LINK_NOT_FOUND, err))
+		io.Respond(c, common.E_DB_LINK_NOT_FOUND, nil)
 	}
 
 }

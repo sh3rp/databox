@@ -14,15 +14,15 @@ func (r *RouterBase) PostLink(c *gin.Context) {
 		if box.Id == nil {
 			newBox, err := r.DB.NewBox(box.Name, box.Description, []byte("password"))
 			if err != nil {
-				c.JSON(200, io.Error(common.E_DB_CREATE_BOX, err))
+				io.Respond(c, common.E_DB_CREATE_BOX, nil)
 				return
 			} else {
-				c.JSON(200, io.Success(newBox))
+				io.Respond(c, common.SUCCESS, newBox)
 				return
 			}
 		}
-		c.JSON(200, io.Success(box))
+		io.Respond(c, common.SUCCESS, box)
 	} else {
-		c.JSON(200, io.Error(common.E_IO_DECODE_BOX, err))
+		io.Respond(c, common.E_IO_DECODE_BOX, nil)
 	}
 }
