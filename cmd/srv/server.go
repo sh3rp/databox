@@ -38,7 +38,7 @@ func main() {
 	search := search.NewBoltSearchEngine(serverConfig.DataDirectory + "/search.db")
 	authenticator := auth.NewBoltDBAuth(serverConfig.DataDirectory + "/user.db")
 	s := server.NewServer(serverConfig.HttpPort, serverConfig.GrpcPort, database, search, authenticator)
-	s.Start()
+	s.Start(serverConfig.CertFile, serverConfig.KeyFile)
 
 	for {
 		time.Sleep(1 * time.Second)

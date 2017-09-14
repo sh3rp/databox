@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"net/http"
 	"os"
 
 	"golang.org/x/net/context"
@@ -13,6 +14,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
+	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/rs/zerolog/log"
 	"github.com/sh3rp/databox/auth"
 	"github.com/sh3rp/databox/config"
@@ -30,10 +32,11 @@ type GRPCServer struct {
 	DB         db.BoxDB
 	Search     search.SearchEngine
 	Port       int
+	HttpPort   int
 	Filter     *secure.SecureFilter
 }
 
-func (s *GRPCServer) Start() {
+func (s *GRPCServer) Start(certFile, keyFile string) {
 	serverConfig := &config.ServerConfig{}
 	serverConfig.Read("server.json")
 
@@ -52,7 +55,17 @@ func (s *GRPCServer) Start() {
 	grpcServer := grpc.NewServer(grpc.Creds(credentials))
 
 	msg.RegisterBoxServiceServer(grpcServer, s)
-	grpcServer.Serve(listener)
+
+	wrappedServer := grpcweb.WrapServer(grpcServer)
+	handler := func(resp http.ResponseWriter, req *http.Request) {
+		wrappedServer.ServeHTTP(resp, req)
+	}
+	httpServer := http.Server{
+		Addr:    fmt.Sprintf(":%d", s.HttpPort),
+		Handler: http.HandlerFunc(handler),
+	}
+	go grpcServer.Serve(listener)
+	go httpServer.ListenAndServeTLS(certFile, keyFile)
 }
 
 func (s *GRPCServer) Authenticate(ctx context.Context, req *msg.AuthRequest) (*msg.AuthResponse, error) {

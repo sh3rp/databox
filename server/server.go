@@ -1,14 +1,12 @@
 package server
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/sh3rp/databox/auth"
 	"github.com/sh3rp/databox/db"
 	"github.com/sh3rp/databox/search"
 	"github.com/sh3rp/databox/secure"
 	"github.com/sh3rp/databox/server/grpc"
 	"github.com/sh3rp/databox/server/web"
-	"github.com/sh3rp/databox/server/web/routes"
 )
 
 type Server struct {
@@ -21,16 +19,6 @@ func NewServer(httpPort, grpcPort int, db db.BoxDB, search search.SearchEngine, 
 	filter := secure.NewSecureFilter(a, tokenStore)
 
 	return &Server{
-		HttpRouter: &web.HttpServer{
-			RouterBase: &routes.RouterBase{
-				DB:         db,
-				Search:     search,
-				Auth:       a,
-				TokenStore: tokenStore,
-			},
-			HttpRouter: gin.Default(),
-			Port:       httpPort,
-		},
 		GRPCRouter: &grpc.GRPCServer{
 			Auth:       a,
 			TokenStore: tokenStore,
@@ -38,11 +26,12 @@ func NewServer(httpPort, grpcPort int, db db.BoxDB, search search.SearchEngine, 
 			Search:     search,
 			Port:       grpcPort,
 			Filter:     filter,
+			HttpPort:   httpPort,
 		},
 	}
 }
 
-func (s *Server) Start() {
-	go s.GRPCRouter.Start()
-	go s.HttpRouter.Start()
+func (s *Server) Start(certFile, keyFile string) {
+	s.GRPCRouter.Start(certFile, keyFile)
+	//go s.HttpRouter.Start()
 }
